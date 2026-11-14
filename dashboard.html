@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSI Fire Safety Explorer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<style>
+:root{--bg:#0b0e13;--panel:#12161d;--panel2:#171c25;--line:#232a36;--text:#e6e9ef;--muted:#8a93a3;--accent:#3aa0ff;--ok:#2ecc71;--warn:#f5a524;--bad:#ff4d4f;--fire:#ff7a3d;--mono:ui-monospace,SFMono-Regular,Consolas,"Cascadia Mono",monospace}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button,input,select{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:#0e1218;position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.2px}
+.flame{color:var(--fire);font-size:22px;text-shadow:0 0 12px var(--fire)}
+.brand-t{display:flex;flex-direction:column;line-height:1.15}
+.logo{height:38px;width:auto;max-width:240px;object-fit:contain}
+.logo[hidden]{display:none}
+@media (max-width:700px){.logo{height:28px;max-width:140px}}
+.brand small{color:var(--muted);font-weight:400}
+.conn{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);font-size:12px;color:var(--muted);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill.on .dot{background:var(--ok);box-shadow:0 0 8px var(--ok)}
+.pill.on{color:var(--text)}
+.pill.err .dot{background:var(--bad)}
+input,select{background:#0c1016;border:1px solid var(--line);border-radius:8px;padding:7px 10px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 14px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;text-decoration:none;color:var(--text)}
+.btn:hover{border-color:#3a4456}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#04111f;font-weight:600}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;padding:16px 20px;max-width:1600px;margin:0 auto}
+@media (max-width:1100px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:0}
+.card h2{margin:0;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+.card-h{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card-h .sp{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.card-b{padding:14px}
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.jsec{grid-column:1/-1}
+.hint{font-size:12px;color:var(--muted)}
+.hint code{font-family:var(--mono);color:var(--text);background:#0c1016;padding:1px 5px;border-radius:4px}
+.big{width:100%;font-size:16px;padding:11px 14px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.row input{flex:1;min-width:140px}
+.chk{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap}
+input[type=checkbox]{padding:0;width:auto;margin:0;accent-color:var(--accent)}
+details.terms{margin-top:10px}
+details.terms summary{cursor:pointer;color:var(--muted);font-size:12.5px}
+details.terms input{width:100%;margin-top:8px;font-family:var(--mono);font-size:12.5px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kp{grid-template-columns:repeat(4,1fr);margin-top:14px}
+@media (max-width:700px){.kp{grid-template-columns:1fr 1fr}}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.stat .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.stat .v{font-size:20px;font-weight:600;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.stat .v.s{font-size:13px;font-weight:500}
+.stat.full{grid-column:1/-1}
+.list{display:flex;flex-direction:column;gap:10px;padding:14px;max-height:640px;overflow:auto;border-top:1px solid var(--line)}
+.res{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--panel2);cursor:pointer}
+.res:hover,.res.sel{border-color:var(--accent)}
+.res .t{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.res b{word-break:break-all}
+.tag{font-size:11px;padding:2px 8px;border-radius:999px;background:#1f2a40;color:var(--muted)}
+.tag.repo{color:var(--accent)}
+.rel{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.bar{height:5px;width:70px;background:#0c1016;border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--fire)}
+.snip{color:var(--muted);font-size:12.5px;margin:6px 0 0}
+.snip .loc{font-family:var(--mono);font-size:11px;color:var(--accent);margin-right:6px}
+mark{background:rgba(255,122,61,.28);color:var(--text);border-radius:3px;padding:0 1px}
+.repos{display:flex;flex-direction:column;max-height:360px;overflow:auto}
+.repo{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer}
+.repo:hover{background:var(--panel2)}
+.repo.sel{background:var(--panel2);box-shadow:inset 3px 0 var(--accent)}
+.repo small{display:block;color:var(--muted);font-size:11.5px}
+.cnt{font-family:var(--mono);font-size:12px;background:#1f2a40;border-radius:999px;padding:1px 9px}
+.out{white-space:pre-wrap;background:#0c1016;border:1px solid var(--line);border-radius:10px;padding:12px;margin-top:12px;min-height:90px;font-size:13.5px;line-height:1.55}
+.out.err{color:#ff8b8d;background:#2a1214;border-color:#5a2226}
+.note{display:block;margin-top:8px;font-size:11px;color:var(--muted)}
+.dgrid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+@media (max-width:1000px){.dgrid{grid-template-columns:1fr}}
+.dleft{border-right:1px solid var(--line);min-width:0}
+.scroll{overflow:auto;max-height:380px;border-top:1px solid var(--line)}
+table{width:100%;border-collapse:collapse}
+td,th{padding:6px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.5px;position:sticky;top:0;background:var(--panel)}
+td{font-family:var(--mono)}
+.pdf{width:100%;height:460px;border:0;border-top:1px solid var(--line);background:#fff}
+.ex{margin:0;padding:14px;max-height:380px;overflow:auto;font-family:var(--mono);font-size:12px;white-space:pre-wrap;border-top:1px solid var(--line)}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1d2430;border:1px solid var(--line);padding:10px 16px;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.5);max-width:90vw;z-index:50;display:none}
+.toast.err{border-color:#5a2226;background:#2a1214}
+main[hidden]{display:none}
+.tabs{display:flex;gap:6px;padding:10px 20px 0;border-bottom:1px solid var(--line);background:#0e1218;flex-wrap:wrap}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:8px 14px;cursor:pointer}
+.tabs button.on{color:var(--text);border-bottom-color:var(--accent)}
+.lab{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted)}
+.lab select{max-width:240px}
+.steps{margin:0 0 12px;padding-left:20px;color:var(--muted)}
+.gcard{cursor:default}
+.gcard:hover{border-color:var(--line)}
+.gcard .rel{gap:6px}
+.tag.ok{color:var(--ok)}
+.chartbox{position:relative;height:380px;margin-top:12px}
+.imgp{max-width:100%;display:block;border-top:1px solid var(--line)}
+.cmp{position:relative;height:420px;background:#0c1016;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px}
+.cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.cmp .lt{position:absolute;top:8px;font-size:11px;background:rgba(0,0,0,.6);padding:2px 8px;border-radius:999px;z-index:2}
+input[type=range]{width:100%;margin-top:10px;accent-color:var(--accent);padding:0}
+#tab-insights{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+@media (max-width:1100px){#tab-insights{grid-template-columns:1fr}}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media (max-width:700px){.pair{grid-template-columns:1fr}}
+.pair figure{margin:0;background:#0c1016;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.pair img{display:block;width:100%;max-height:520px;object-fit:contain}
+.pair figcaption{padding:6px 10px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);word-break:break-all}
+.chat{display:flex;flex-direction:column}
+.chatlog{height:430px;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:92%;padding:10px 12px;border-radius:12px;white-space:pre-wrap;line-height:1.5;font-size:13.5px}
+.msg.u{align-self:flex-end;background:#1f2a40}
+.msg.a{align-self:flex-start;background:var(--panel2);border:1px solid var(--line)}
+.src{margin-top:8px;font-size:11.5px;color:var(--muted);white-space:normal}
+.src a{color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line)}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--muted)}
+.chip:hover{border-color:var(--accent);color:var(--text)}
+.rank{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#1f2a40;font-size:12px;color:var(--text)}
+[hidden]{display:none!important}
+.picks{display:flex;flex-direction:column;gap:8px;margin-top:10px;white-space:normal}
+.picks .res{background:var(--panel)}
+.fg h4{margin:12px 0 6px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.fg:first-child h4{margin-top:0}
+.fg .row{margin-top:0}
+.fg .chip{display:inline-block;margin:0 4px 4px 0}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#04111f}
+.tag.f{color:var(--fire)}
+.invtabs{display:flex;gap:4px;overflow:auto;border-bottom:1px solid var(--line);padding:10px 14px 0;min-height:44px}
+.itab{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;cursor:pointer;color:var(--muted);white-space:nowrap;background:var(--panel2)}
+.itab.on{color:var(--text);border-color:var(--accent)}
+.itab i{font-style:normal;opacity:.6}
+.itab i:hover{opacity:1;color:var(--bad)}
+.wgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:14px;padding:14px}
+.wgrid>.card{background:var(--panel2)}
+.span2{grid-column:1/-1}
+.fbtns{display:flex;gap:6px;flex-wrap:wrap}
+@media (max-width:1100px){.wgrid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <img id="logoL" class="logo" alt="" hidden>
+  <div class="brand">
+    <span class="flame">●</span>
+    <div class="brand-t">NASA PSI <small>Fire Safety Explorer</small></div>
+  </div>
+  <div class="conn">
+    <span class="pill on" id="pRepos"><span class="dot"></span><span id="pReposTxt">…</span></span>
+    <span class="pill on" id="pFiles"><span class="dot"></span><span id="pFilesTxt">…</span></span>
+    <span class="pill" id="pAi"><span class="dot"></span><span id="pAiTxt">AI…</span></span>
+    <select id="lang">
+      <option value="en">AI answers: English</option>
+      <option value="es">AI answers: Español</option>
+    </select>
+    <label class="chk"><input type="checkbox" id="auto" checked> auto AI</label>
+    <button class="btn" id="reindex">↻ Reindex</button>
+  </div>
+  <img id="logoR" class="logo" alt="" hidden>
+</header>
+<nav class="tabs">
+  <button data-tab="start">1 · Start</button>
+  <button data-tab="work">2 · Workspace</button>
+  <button data-tab="explore">3 · Explore</button>
+  <button data-tab="charts">4 · Charts</button>
+  <button data-tab="compare">5 · Compare</button>
+  <button data-tab="insights">6 · Safety insights</button>
+</nav>
+
+<main id="tab-explore">
+  <section class="card">
+    <div class="card-h">
+      <h2>Search investigations</h2>
+      <div class="sp">
+        <select id="type">
+          <option value="all">All file types</option>
+          <option value="pdf">PDF reports</option>
+          <option value="csv">CSV tables</option>
+          <option value="xlsx">Excel tables</option>
+          <option value="text">Text / JSON</option>
+          <option value="image">Images</option>
+        </select>
+      </div>
+    </div>
+    <div class="card-b">
+      <input id="q" class="big" placeholder="Search every repository: fuel, smoke, BASS, oxygen, extinguishment…" autocomplete="off" autofocus>
+      <details class="terms">
+        <summary>Fire safety relevance terms</summary>
+        <input id="fire" spellcheck="false">
+        <span class="hint">Results are ranked by how often these terms appear per 10k characters of each file.</span>
+      </details>
+      <div class="stats kp" id="kpis"></div>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <aside class="side">
+    <section class="card">
+      <div class="card-h"><h2>Filters</h2><div class="sp"><button class="btn sm" id="fReset">Reset</button></div></div>
+      <div class="card-b" id="facets"></div>
+    </section>
+    <section class="card">
+      <div class="card-h"><h2>Repositories</h2></div>
+      <div class="repos" id="repos"></div>
+    </section>
+    <section class="card">
+      <div class="card-h">
+        <h2>Repository overview</h2>
+        <div class="sp"><button id="btnRepoOpen" class="btn sm" disabled>Open workspace</button><button id="btnRepoAi" class="btn sm primary" disabled>✦ AI overview</button></div>
+      </div>
+      <div class="card-b">
+        <div class="hint" id="repoInfo">Select a repository to see its description and an AI overview.</div>
+        <div class="out" id="repoOut" style="display:none"></div>
+      </div>
+    </section>
+  </aside>
+
+  <section class="card jsec" id="detail">
+    <div class="card-h">
+      <h2>File detail</h2>
+      <span class="hint" id="dName">Select a file from the results.</span>
+      <div class="sp" id="dActions"></div>
+    </div>
+    <div class="dgrid">
+      <div class="dleft">
+        <div class="card-b"><div class="stats" id="dStats"></div></div>
+        <div id="dPreview"></div>
+      </div>
+      <div class="card-b">
+        <div class="row" style="margin-top:0">
+          <button id="bSum" class="btn primary" disabled>✦ AI summary</button>
+          <button id="bLunar" class="btn" disabled>🌙 Lunar habitat relevance</button>
+          <label class="chk"><input type="checkbox" id="regen"> regenerate</label>
+        </div>
+        <div class="row">
+          <input id="ask" placeholder="Ask a question about this file…">
+          <button id="bAsk" class="btn" disabled>Ask</button>
+        </div>
+        <div class="out" id="aiOut">Select a file, then choose an AI action.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<main id="tab-start" hidden>
+  <section class="card chat jsec">
+    <div class="card-h"><h2>Which PSI should I use?</h2><div class="sp"><button class="btn sm" id="sClear">Clear</button></div></div>
+    <div class="chatlog" id="sLog"></div>
+    <div class="chips">
+      <button class="chip">Which PSI fits fire safety in a lunar habitat?</button>
+      <button class="chip">I want data to model flame spread on solid materials</button>
+      <button class="chip">Which PSI helps with smoke detection?</button>
+    </div>
+    <div class="card-b"><div class="row" style="margin-top:0"><input id="sIn" placeholder="Describe what you want to study…"><button class="btn primary" id="sSend">Send</button></div></div>
+  </section>
+  <section class="card jsec">
+    <div class="card-h"><h2>Add a PSI</h2></div>
+    <div class="card-b">
+      <div class="row" style="margin-top:0">
+        <input id="aPsi" list="aList" placeholder="PSI number, e.g. 159"><datalist id="aList"></datalist>
+        <button class="btn primary" id="aLoad">Load from NASA</button>
+        <label class="btn">⬆ Upload my files<input type="file" id="aFiles" multiple hidden accept=".csv,.tsv,.xlsx,.xlsm,.pdf,.txt,.md,.json,.png,.jpg,.jpeg,.webp,.gif"></label>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Load reads the reports, tables and images straight from the NASA PSI repository, with no manual download. Upload is for files you already have; type the PSI number first.</p>
+      <div id="aStatus" style="margin-top:8px"></div>
+    </div>
+  </section>
+</main>
+
+<main id="tab-work" hidden>
+  <section class="card jsec">
+    <div class="card-h"><h2 id="wTitle">Repositories</h2></div>
+    <div id="wBody"></div>
+  </section>
+</main>
+
+<main id="tab-charts" hidden>
+  <section class="card jsec">
+    <div class="card-h"><h2>Charts</h2></div>
+    <div class="card-b" id="cPanel"></div>
+  </section>
+</main>
+
+<main id="tab-compare" hidden>
+  <section class="card jsec">
+    <div class="card-h"><h2>Compare two files</h2></div>
+    <div class="card-b">
+      <div id="mSideA"></div>
+      <div id="mSideB" style="margin-top:12px"></div>
+      <div class="row"><button class="btn primary" id="mGo">✦ Compare with AI</button></div>
+      <div id="mView"></div>
+      <div class="out" id="mOut" style="display:none"></div>
+    </div>
+  </section>
+</main>
+
+<main id="tab-insights" hidden>
+  <section class="card">
+    <div class="card-h"><h2>Rank investigations</h2></div>
+    <div class="card-b">
+      <div class="row" style="margin-top:0">
+        <label class="lab">Environment<select id="rEnv">
+          <option value="any">Any crewed environment</option>
+          <option value="spacecraft">Spacecraft / ISS</option>
+          <option value="station">Space station</option>
+          <option value="lunar">Lunar surface base</option>
+          <option value="mars">Mars surface base</option>
+          <option value="rover">Pressurized rover</option>
+        </select></label>
+        <label class="lab">Focus<select id="rLens">
+          <option value="habitat">Habitat relevance</option>
+          <option value="modeling">Data for predictive modeling</option>
+          <option value="controls">Next-gen controls and equipment</option>
+          <option value="earth">Earth applications</option>
+        </select></label>
+        <button class="btn primary" id="rGo">✦ Rank with AI</button>
+        <label class="chk"><input type="checkbox" id="rRegen"> regenerate</label>
+      </div>
+      <p class="hint" style="margin:10px 0 0">Scores are AI-assessed estimates based on each investigation's description, not measured values. Fire safety of rockets and propellants is outside the scope of the PSI data.</p>
+    </div>
+    <div class="list" id="rList"><div class="hint">Choose an environment and a focus, then press Rank.</div></div>
+  </section>
+
+  <section class="card chat">
+    <div class="card-h">
+      <h2>Safety insights chatbot</h2>
+      <div class="sp"><label class="chk"><input type="checkbox" id="iWeb" checked> web search</label><button class="btn sm" id="chatClear">Clear</button></div>
+    </div>
+    <div class="chatlog" id="chatLog"></div>
+    <div class="chips" id="chips">
+      <button class="chip">Which investigations matter most for a lunar base?</button>
+      <button class="chip">What data do I need to model flammability of a material?</button>
+      <button class="chip">Which research informs next-generation detectors and suppression?</button>
+      <button class="chip">What Earth applications come from these experiments?</button>
+    </div>
+    <div class="card-b">
+      <div class="row" style="margin-top:0"><select id="iFile" style="width:100%"><option value="">No file attached</option></select></div>
+      <div class="row"><input id="chatIn" placeholder="Ask about flammability, detection, suppression…"><button class="btn primary" id="chatSend">Send</button></div>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem("psi_" + k); return v === null ? d : v; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem("psi_" + k, v); } catch (e) {} }
+};
+const S = {repos: [], repo: LS.get("repo", ""), sel: null, files: -1, results: [], total: 0, byRepo: {}, seq: 0, data: "",
+  f: {cats: {}, o2min: "", o2max: "", pmin: "", pmax: ""}, opts: {}, curW: LS.get("curW", ""),
+  open: (() => { try { return JSON.parse(LS.get("open", "[]")); } catch (e) { return []; } })()};
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+const terms = s => (s || "").toLowerCase().split(/[\s,]+/).filter(Boolean);
+const fmtSize = n => n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(1) + " KB" : (n / 1048576).toFixed(1) + " MB";
+
+function mark(text, ts) {
+  if (!ts.length) return esc(text);
+  const re = new RegExp("(" + ts.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi");
+  return text.split(re).map((p, i) => i % 2 ? "<mark>" + esc(p) + "</mark>" : esc(p)).join("");
+}
+function fmt(t) {
+  return esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").split("\n").map(l => l.replace(/^\s*[*-]\s+/, "• ")).join("\n");
+}
+function toast(msg, err = false, ms = 4500) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = "toast" + (err ? " err" : "");
+  t.style.display = "block";
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.style.display = "none", ms);
+}
+async function api(path, opts = {}) {
+  const o = {...opts};
+  if (o.json !== undefined) {
+    o.method = "POST";
+    o.headers = {"Content-Type": "application/json"};
+    o.body = JSON.stringify(o.json);
+    delete o.json;
+  }
+  let j;
+  try { j = await (await fetch(path, o)).json(); }
+  catch (e) { throw new Error("The local server is not responding. Is server.py still running?"); }
+  if (!j.ok) throw new Error(j.error || "Error");
+  return j;
+}
+
+async function loadIndex(first) {
+  const j = await api("/api/index");
+  const changed = j.files !== S.files;
+  S.files = j.files;
+  S.repos = j.repos;
+  S.data = j.data;
+  $("#pReposTxt").textContent = j.repos.length + " repositories";
+  $("#pFilesTxt").textContent = j.files + " files indexed";
+  $("#pAi").className = "pill " + (j.ai ? "on" : "err");
+  $("#pAiTxt").textContent = j.ai ? "AI ready · " + j.model : "AI key missing in .env";
+  if (first && !$("#fire").value) $("#fire").value = LS.get("fire", j.fire);
+  if (S.repo && !j.repos.some(r => r.name === S.repo)) S.repo = "";
+  if (first || changed) { await loadFacets(); await runSearch(); } else renderRepos();
+  if (!$("#tab-work").hidden && !S.curW && changed) renderWork();
+}
+
+async function runSearch() {
+  const n = ++S.seq;
+  const p = new URLSearchParams({q: $("#q").value, fire: $("#fire").value, repo: S.repo, type: $("#type").value});
+  Object.entries(S.f.cats).forEach(([k, a]) => a.forEach(v => p.append("cat", k + ":" + v)));
+  ["o2min", "o2max", "pmin", "pmax"].forEach(k => { if (S.f[k] !== "") p.set(k, S.f[k]); });
+  try {
+    const j = await api("/api/search?" + p);
+    if (n !== S.seq) return;
+    S.results = j.results;
+    S.total = j.total;
+    S.byRepo = j.by_repo;
+    renderList();
+    renderRepos();
+    renderKpis();
+  } catch (e) { toast(e.message, true); }
+}
+
+function renderKpis() {
+  const rows = S.repos.reduce((a, r) => a + r.rows, 0);
+  const pdfs = S.repos.reduce((a, r) => a + r.pdfs, 0);
+  $("#kpis").innerHTML = [[S.repos.length, "Repositories"], [S.files, "Files"], [rows.toLocaleString(), "Table rows · " + pdfs + " PDF"], [S.total, "Matches shown"]]
+    .map(k => `<div class="stat"><div class="k">${k[1]}</div><div class="v">${k[0]}</div></div>`).join("");
+}
+
+function renderList() {
+  const el = $("#list");
+  if (!S.files) {
+    el.innerHTML = `<div class="hint">No files yet. Copy your NASA PSI files into <code>${esc(S.data)}/&lt;repository&gt;/</code> (CSV, XLSX, PDF) and they will appear here automatically.</div>`;
+    return;
+  }
+  const ts = terms($("#q").value), fs = terms($("#fire").value), hl = ts.length ? ts : fs;
+  const max = Math.max(1, ...S.results.map(r => r.score));
+  el.innerHTML = S.results.map(r => {
+    const size = r.type === "pdf" ? r.pages + " pages" : r.rows ? r.rows.toLocaleString() + " rows" : fmtSize(r.size);
+    return `<div class="res ${S.sel && S.sel.id === r.id ? "sel" : ""}" data-id="${esc(r.id)}">
+      <div class="t"><b>${esc(r.name)}</b><span class="tag repo">${esc(r.repo)}</span><span class="tag">${esc(r.ext.toUpperCase())}</span><span class="tag">${size}</span>
+      <span class="rel"><span class="bar"><i style="width:${Math.round(r.score / max * 100)}%"></i></span>${r.score} /10k</span></div>
+      ${r.snippets.map(s => `<p class="snip"><span class="loc">${esc(s.loc)}</span>…${mark(s.text, hl)}…</p>`).join("")}</div>`;
+  }).join("") || '<div class="hint">No matches. Try fewer words or another repository.</div>';
+  el.querySelectorAll(".res").forEach(x => x.onclick = () => select(x.dataset.id));
+}
+
+function renderRepos() {
+  const filtered = $("#q").value.trim() || $("#type").value !== "all" || filtersOn();
+  const total = Object.values(S.byRepo).reduce((a, b) => a + b, 0);
+  const row = (name, label, sub, n) => `<div class="repo ${S.repo === name ? "sel" : ""}" data-r="${esc(name)}"><div>${esc(label)}<small>${sub}</small></div><span class="cnt">${n}</span></div>`;
+  $("#repos").innerHTML = row("", "All repositories", S.files + " files", filtered ? total : S.files) +
+    S.repos.map(r => { const fl = facetLine(r); return row(r.name, r.name, `${r.files} files · ${r.pdfs} PDF · ${r.rows.toLocaleString()} rows` + (fl ? "<br>" + esc(fl) : ""), filtered ? (S.byRepo[r.name] || 0) : r.files); }).join("");
+  $("#repos").querySelectorAll(".repo").forEach(x => x.onclick = () => setRepo(x.dataset.r));
+  const r = S.repos.find(x => x.name === S.repo);
+  $("#btnRepoAi").disabled = !r;
+  $("#btnRepoOpen").disabled = !r;
+  if (!$("#repoOut").dataset.repo || $("#repoOut").dataset.repo !== S.repo) {
+    $("#repoOut").style.display = "none";
+    $("#repoOut").dataset.repo = "";
+  }
+  $("#repoInfo").textContent = r ? (r.desc || `${r.files} files · ${r.tables} tables · ${r.pdfs} PDF reports. Add a README.md to this folder to show a description here.`) : "Select a repository to see its description and an AI overview.";
+}
+
+function setRepo(name) {
+  S.repo = name;
+  LS.set("repo", name);
+  runSearch();
+}
+
+async function select(id) {
+  try {
+    const j = await api("/api/file?id=" + encodeURIComponent(id));
+    S.sel = j.file;
+    renderDetail();
+    renderList();
+    $("#detail").scrollIntoView({behavior: "smooth", block: "start"});
+  } catch (e) { toast(e.message, true); }
+}
+
+function renderDetail() {
+  const f = S.sel;
+  const u = "/api/raw?id=" + encodeURIComponent(f.id);
+  $("#dName").textContent = f.id;
+  $("#dActions").innerHTML = `<a class="btn sm" href="${u}" target="_blank">Open original</a><a class="btn sm" href="${u}&dl=1">Download</a>`;
+  const stats = [["Repository", f.repo], ["Type", f.ext.toUpperCase()], ["Size", fmtSize(f.size)], [f.type === "pdf" ? "Pages" : "Rows", f.type === "pdf" ? f.pages : (f.rows || "—")]];
+  if (f.cols) stats.push(["Columns", f.cols]);
+  if (f.sheets && f.sheets.length) stats.push(["Sheets", f.sheets.join(", ")]);
+  $("#dStats").innerHTML = stats.map(s => `<div class="stat"><div class="k">${s[0]}</div><div class="v s">${esc(s[1])}</div></div>`).join("") +
+    (f.error ? `<div class="stat full"><div class="k">Notice</div><div class="v s" style="color:var(--warn);white-space:normal">${esc(f.error)}</div></div>` : "");
+  let p = "";
+  if (f.type === "image") p = `<img class="imgp" src="${u}" alt="">`;
+  else if (f.type === "pdf") p = `<iframe class="pdf" src="${u}"></iframe>`;
+  else if (f.preview) p = `<div class="scroll"><table><tr>${f.preview.headers.map(h => `<th>${esc(h)}</th>`).join("")}</tr>${f.preview.rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></div>`;
+  else if (f.excerpt) p = `<pre class="ex">${esc(f.excerpt)}</pre>`;
+  $("#dPreview").innerHTML = p;
+  ["#bSum", "#bLunar", "#bAsk"].forEach(s => $(s).disabled = false);
+  $("#aiOut").className = "out";
+  $("#aiOut").textContent = "Choose an AI action.";
+  if ($("#auto").checked) $("#bSum").click();
+}
+
+async function runAi(task, btn, out, extra, url = "/api/ai") {
+  const tk = out._tk = (out._tk || 0) + 1;
+  const body = {task, lang: $("#lang").value, refresh: $("#regen").checked, ...extra};
+  btn.disabled = true;
+  out.style.display = "block";
+  out.className = "out";
+  out.textContent = "Analyzing…";
+  try {
+    const j = await api(url, {json: body});
+    if (out._tk !== tk) return;
+    out.innerHTML = fmt(j.text) + (j.cached ? '<span class="note">Saved answer, no new API call. Tick "regenerate" for a fresh one.</span>' : "");
+  } catch (e) {
+    if (out._tk !== tk) return;
+    out.className = "out err";
+    out.textContent = e.message;
+  } finally { btn.disabled = false; }
+}
+
+$("#bSum").onclick = () => S.sel && runAi("summary", $("#bSum"), $("#aiOut"), {id: S.sel.id});
+$("#bLunar").onclick = () => S.sel && runAi("lunar", $("#bLunar"), $("#aiOut"), {id: S.sel.id});
+$("#bAsk").onclick = () => S.sel && runAi("ask", $("#bAsk"), $("#aiOut"), {id: S.sel.id, question: $("#ask").value});
+$("#ask").addEventListener("keydown", e => { if (e.key === "Enter") $("#bAsk").click(); });
+$("#btnRepoAi").onclick = () => {
+  if (!S.repo) return;
+  $("#repoOut").dataset.repo = S.repo;
+  runAi("repo", $("#btnRepoAi"), $("#repoOut"), {repo: S.repo});
+};
+
+$("#btnRepoOpen").onclick = () => S.repo && openWork(S.repo);
+
+let timer;
+const later = () => { clearTimeout(timer); timer = setTimeout(runSearch, 250); };
+$("#q").addEventListener("input", later);
+$("#fire").addEventListener("input", () => { LS.set("fire", $("#fire").value); later(); });
+$("#type").addEventListener("change", runSearch);
+$("#lang").value = LS.get("lang", "en");
+$("#lang").addEventListener("change", e => LS.set("lang", e.target.value));
+$("#reindex").onclick = async () => {
+  try { await api("/api/reindex", {json: {}}); await loadIndex(true); toast("Reindexed"); }
+  catch (e) { toast(e.message, true); }
+};
+
+const TABS = ["start", "work", "explore", "charts", "compare", "insights"];
+let CAT = [], FILES = [];
+const PAL = ["#ff7a3d", "#3aa0ff", "#2ecc71", "#f5a524", "#c77dff", "#ff4d6d", "#4dd0e1", "#b0bec5", "#ffd54f", "#81c784", "#f06292", "#9575cd"];
+
+
+function facetLine(r) {
+  const f = r.facets || {};
+  const p = [];
+  const fu = (f.cats || {}).fuel;
+  if (fu && fu.length) p.push(fu.slice(0, 3).join("/"));
+  if (f.o2) p.push("O₂ " + f.o2.map(v => +v.toFixed(1)).join("–") + "%");
+  if (f.p) p.push(f.p.map(v => +v.toFixed(2)).join("–") + " atm");
+  return p.join(" · ");
+}
+
+function facetTags(f) {
+  if (!f) return [];
+  const t = [];
+  Object.entries(f.cats || {}).forEach(([k, v]) => v.forEach(x => t.push(k + ": " + x)));
+  if (f.o2) t.push("O₂ " + f.o2.map(v => +v.toFixed(1)).join("–") + "%");
+  if (f.p) t.push(f.p.map(v => +v.toFixed(2)).join("–") + " atm");
+  return t;
+}
+
+function filtersOn() {
+  return Object.keys(S.f.cats).length > 0 || ["o2min", "o2max", "pmin", "pmax"].some(k => S.f[k] !== "");
+}
+
+function tableHtml(p) {
+  return `<div class="scroll"><table><tr>${p.headers.map(h => `<th>${esc(h)}</th>`).join("")}</tr>${p.rows.map(r => `<tr>${r.map(c => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</table></div>`;
+}
+
+async function loadFacets() {
+  const j = await api("/api/facets");
+  S.opts = j.options;
+  Object.keys(S.f.cats).forEach(k => {
+    S.f.cats[k] = S.f.cats[k].filter(v => (S.opts[k] || []).includes(v));
+    if (!S.f.cats[k].length) delete S.f.cats[k];
+  });
+  renderFacets();
+}
+
+function renderFacets() {
+  const f = S.f;
+  const groups = Object.entries(S.opts).map(([k, vals]) => `<div class="fg"><h4>${esc(k)}</h4>${vals.map(v => `<span class="chip ${f.cats[k] && f.cats[k].includes(v) ? "on" : ""}" data-k="${esc(k)}" data-v="${esc(v)}">${esc(v)}</span>`).join("")}</div>`).join("");
+  const range = (title, a, b) => `<div class="fg"><h4>${title}</h4><div class="row"><input type="number" data-n="${a}" placeholder="min" value="${esc(f[a])}"><input type="number" data-n="${b}" placeholder="max" value="${esc(f[b])}"></div></div>`;
+  $("#facets").innerHTML = (groups || '<div class="hint">Filters appear when tables with fuel, oxygen or pressure columns are loaded, or when a README.md has front matter (fuel, mission, hardware).</div>')
+    + range("Oxygen (%)", "o2min", "o2max") + range("Pressure (atm)", "pmin", "pmax");
+}
+
+$("#facets").addEventListener("click", e => {
+  const c = e.target.closest(".chip");
+  if (!c) return;
+  const k = c.dataset.k, v = c.dataset.v;
+  const a = S.f.cats[k] || (S.f.cats[k] = []);
+  const i = a.indexOf(v);
+  if (i < 0) a.push(v); else a.splice(i, 1);
+  if (!a.length) delete S.f.cats[k];
+  renderFacets();
+  runSearch();
+});
+$("#facets").addEventListener("input", e => {
+  const n = e.target.dataset.n;
+  if (!n) return;
+  S.f[n] = e.target.value;
+  later();
+});
+$("#fReset").onclick = () => {
+  S.f = {cats: {}, o2min: "", o2max: "", pmin: "", pmax: ""};
+  renderFacets();
+  runSearch();
+};
+
+$("#auto").checked = LS.get("auto", "1") === "1";
+$("#auto").addEventListener("change", e => LS.set("auto", e.target.checked ? "1" : "0"));
+
+class ChartPanel {
+  constructor(root) {
+    this.root = root;
+    this.chart = null;
+    this.info = null;
+    this.tables = [];
+    this.cols = [];
+    root.innerHTML = `<div class="row" style="margin-top:0">
+      <label class="lab">Table<select data-r="file"></select></label>
+      <label class="lab sheetlab" hidden>Sheet<select data-r="sheet"></select></label>
+      <label class="lab">X axis<select data-r="x"></select></label>
+      <label class="lab">Y axis<select data-r="y"></select></label>
+      <label class="lab">Group by<select data-r="g"></select></label>
+      <label class="lab">Type<select data-r="type"><option value="scatter">Scatter</option><option value="line">Line</option></select></label>
+      <label class="chk"><input type="checkbox" data-r="logx"> log X</label>
+      <label class="chk"><input type="checkbox" data-r="logy"> log Y</label>
+      <button class="btn primary" data-r="go">Plot</button>
+      <button class="btn" data-r="ai" disabled>✦ Interpret with AI</button>
+      <button class="btn" data-r="png" disabled>PNG</button>
+    </div>
+    <div class="hint" data-r="info" style="margin-top:8px"></div>
+    <div class="chartbox"><canvas data-r="canvas"></canvas></div>
+    <div class="scroll" data-r="stats"></div>
+    <div class="out" data-r="out" style="display:none"></div>`;
+    this.el = {};
+    root.querySelectorAll("[data-r]").forEach(e => { this.el[e.dataset.r] = e; });
+    this.sheetLab = root.querySelector(".sheetlab");
+    this.el.file.onchange = () => this.loadSheets();
+    this.el.sheet.onchange = () => this.loadColumns();
+    this.el.go.onclick = () => this.plot();
+    this.el.type.onchange = () => this.plot();
+    this.el.logx.onchange = () => this.plot();
+    this.el.logy.onchange = () => this.plot();
+    this.el.ai.onclick = () => this.info && runAi("chart", this.el.ai, this.el.out, {payload: JSON.stringify(this.info)});
+    this.el.png.onclick = () => {
+      if (!this.chart) return;
+      const a = document.createElement("a");
+      a.href = this.chart.toBase64Image();
+      a.download = "chart.png";
+      a.click();
+    };
+  }
+
+  sheet() { return this.sheetLab.hidden ? "" : this.el.sheet.value; }
+
+  async setTables(list, pick) {
+    const prev = this.el.file.value;
+    this.tables = list;
+    this.el.file.innerHTML = list.map(f => `<option value="${esc(f.id)}">${esc(f.id)}</option>`).join("");
+    if (!list.length) {
+      this.cols = [];
+      this.el.info.textContent = "No CSV or XLSX tables loaded.";
+      return;
+    }
+    if (pick && list.some(f => f.id === pick)) this.el.file.value = pick;
+    else if (list.some(f => f.id === prev)) this.el.file.value = prev;
+    if (this.el.file.value !== prev || !this.cols.length) await this.loadSheets();
+  }
+
+  async loadSheets() {
+    const f = this.tables.find(x => x.id === this.el.file.value);
+    const sh = (f && f.sheets) || [];
+    this.el.sheet.innerHTML = sh.map(x => `<option>${esc(x)}</option>`).join("");
+    this.sheetLab.hidden = sh.length < 2;
+    await this.loadColumns();
+  }
+
+  async loadColumns() {
+    const id = this.el.file.value;
+    if (!id) return;
+    let j;
+    try { j = await api("/api/columns?" + new URLSearchParams({id, sheet: this.sheet()})); }
+    catch (e) { toast(e.message, true); return; }
+    this.cols = j.columns;
+    const num = j.columns.filter(c => c.numeric).map(c => c.name);
+    const opts = l => l.map(n => `<option>${esc(n)}</option>`).join("");
+    this.el.x.innerHTML = opts(num);
+    this.el.y.innerHTML = opts(num);
+    if (num.length > 1) this.el.y.selectedIndex = 1;
+    const cats = j.columns.filter(c => !c.numeric || c.unique <= 12);
+    this.el.g.innerHTML = '<option value="">No grouping</option>' + opts(cats.map(c => c.name));
+    const pref = cats.find(c => !c.numeric && /^fuel/i.test(c.name)) || cats.find(c => !c.numeric && /^(flame type|material)/i.test(c.name));
+    if (pref) this.el.g.value = pref.name;
+    this.el.info.textContent = num.length ? "" : "This table has no numeric columns.";
+    if (num.length > 1) await this.plot();
+  }
+
+  async plot() {
+    const x = this.el.x.value, y = this.el.y.value, g = this.el.g.value, id = this.el.file.value;
+    if (!id || !x || !y) return;
+    let j;
+    try { j = await api("/api/series?" + new URLSearchParams({id, sheet: this.sheet(), x, y, g})); }
+    catch (e) { toast(e.message, true); return; }
+    const line = this.el.type.value === "line";
+    if (this.chart) this.chart.destroy();
+    const axis = (t, log) => ({type: log ? "logarithmic" : "linear", title: {display: true, text: t, color: "#8a93a3"}, ticks: {color: "#8a93a3"}, grid: {color: "#232a36"}});
+    this.chart = new Chart(this.el.canvas, {
+      type: "scatter",
+      data: {datasets: j.series.map((s, i) => ({
+        label: s.name,
+        data: (line ? [...s.points].sort((a, b) => a[0] - b[0]) : s.points).map(p => ({x: p[0], y: p[1]})),
+        borderColor: PAL[i % PAL.length], backgroundColor: PAL[i % PAL.length] + "99", showLine: line, pointRadius: 3, tension: 0
+      }))},
+      options: {responsive: true, maintainAspectRatio: false, scales: {x: axis(x, this.el.logx.checked), y: axis(y, this.el.logy.checked)}, plugins: {legend: {labels: {color: "#e6e9ef"}}}},
+      plugins: [{id: "bg", beforeDraw(c) { const k = c.ctx; k.save(); k.globalCompositeOperation = "destination-over"; k.fillStyle = "#12161d"; k.fillRect(0, 0, c.width, c.height); k.restore(); }}]
+    });
+    this.el.info.textContent = j.skipped ? `${j.skipped} rows skipped because X or Y is not a number (for example RAMP rows).` : "All rows plotted.";
+    const f = v => Number(v.toPrecision(5));
+    this.el.stats.innerHTML = `<table><tr><th>Group</th><th>Rows</th><th>Min ${esc(y)}</th><th>Mean ${esc(y)}</th><th>Max ${esc(y)}</th></tr>${j.stats.map(s => `<tr><td>${esc(s.group)}</td><td>${s.n}</td><td>${f(s.min)}</td><td>${f(s.mean)}</td><td>${f(s.max)}</td></tr>`).join("")}</table>`;
+    this.info = {file: id, sheet: this.sheet() || "first", x, y, group: g || "none", skipped_rows: j.skipped, stats: j.stats};
+    this.el.ai.disabled = false;
+    this.el.png.disabled = false;
+  }
+}
+
+const CP = new ChartPanel($("#cPanel"));
+let WDATA = null;
+
+function openWork(name) {
+  if (!name) return;
+  S.curW = name;
+  LS.set("curW", name);
+  showTab("work");
+}
+
+function renderWork() {
+  if (S.curW && S.repos.some(r => r.name === S.curW)) { renderRepoView(S.curW); return; }
+  S.curW = "";
+  $("#wTitle").textContent = "Repositories";
+  $("#wBody").innerHTML = S.repos.length ? '<div class="list">' + S.repos.map(r => `<div class="res gcard">
+    <div class="t"><b>${esc(r.name)}</b><span class="tag">${r.files} files</span><span class="tag ${r.remote ? "ok" : ""}">${r.remote ? "from NASA" : "uploaded"}</span>
+    <span class="rel"><button class="btn sm primary" data-open="${esc(r.name)}">Open</button></span></div>
+    <p class="snip">${esc(r.desc || r.tables + " tables · " + r.pdfs + " PDF")}</p></div>`).join("") + "</div>"
+    : '<div class="card-b hint">No repositories yet. Go to Start to load a PSI from NASA or upload your files.</div>';
+}
+
+async function wShow(id) {
+  const f = WDATA.files.find(x => x.id === id);
+  if (!f) return;
+  const u = "/api/raw?id=" + encodeURIComponent(id);
+  let h = "";
+  if (f.type === "pdf") h = `<iframe class="pdf" src="${u}"></iframe>`;
+  else if (f.type === "image") h = `<img class="imgp" src="${u}" alt="">`;
+  else {
+    try {
+      const d = (await api("/api/file?id=" + encodeURIComponent(id))).file;
+      h = d.preview ? tableHtml(d.preview) : `<pre class="ex">${esc(d.excerpt)}</pre>`;
+    } catch (e) { h = `<div class="card-b"><div class="out err">${esc(e.message)}</div></div>`; }
+  }
+  $("#wViewer").innerHTML = h;
+  document.querySelectorAll("#wFileBtns .btn").forEach(b => b.classList.toggle("primary", b.dataset.id === id));
+}
+
+async function renderRepoView(name) {
+  let j;
+  try { j = await api("/api/repo?name=" + encodeURIComponent(name)); }
+  catch (e) { S.curW = ""; renderWork(); return; }
+  if (name !== S.curW) return;
+  WDATA = j;
+  const r = S.repos.find(x => x.name === name) || {};
+  $("#wTitle").textContent = name;
+  $("#wBody").innerHTML = `<div class="card-b">
+    <div class="row" style="margin-top:0"><button class="btn sm" id="wBack">← All repositories</button><button class="btn sm primary" id="wGen">✦ AI overview</button>${r.remote ? '<button class="btn sm" id="wDel">Remove</button>' : ""}</div>
+    <div class="out" id="wAi" style="display:none"></div>
+    <div class="hint" style="margin:12px 0 6px">Files</div>
+    <div class="fbtns" id="wFileBtns">${j.files.map(f => `<button class="btn sm" data-id="${esc(f.id)}">${esc(f.name)}</button>`).join("")}</div></div>
+    <div id="wViewer"></div>`;
+  $("#wBack").onclick = () => { S.curW = ""; LS.set("curW", ""); renderWork(); };
+  $("#wFileBtns").onclick = e => { const b = e.target.closest("[data-id]"); if (b) wShow(b.dataset.id); };
+  $("#wGen").onclick = () => runAi("repo", $("#wGen"), $("#wAi"), {repo: name});
+  if ($("#wDel")) $("#wDel").onclick = async () => {
+    if (!confirm("Remove " + name + " from the dashboard? You can load it again from NASA.")) return;
+    try { await api("/api/remote/remove", {json: {repo: name}}); S.curW = ""; await loadIndex(true); renderWork(); }
+    catch (e) { toast(e.message, true); }
+  };
+  const first = j.files.find(f => f.type === "pdf") || j.files.find(f => f.type === "image");
+  if (first) wShow(first.id);
+  if ($("#auto").checked) $("#wGen").click();
+}
+
+$("#wBody").addEventListener("click", e => {
+  const b = e.target.closest("[data-open]");
+  if (b) openWork(b.dataset.open);
+});
+
+function showTab(t) {
+  TABS.forEach(x => {
+    $("#tab-" + x).hidden = x !== t;
+    document.querySelector(`.tabs [data-tab="${x}"]`).classList.toggle("on", x === t);
+  });
+  LS.set("tab", t);
+  if (t === "start") loadStart();
+  if (t === "work") renderWork();
+  if (t === "charts" || t === "compare" || t === "insights") loadFiles();
+}
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+let SCHAT = [], sBusy = false, POLL = null;
+
+async function loadStart() {
+  try {
+    CAT = (await api("/api/catalog")).items;
+    $("#aList").innerHTML = CAT.map(i => `<option value="${i.n}">${esc(i.titles.join(" · ").slice(0, 90))}</option>`).join("");
+  } catch (e) { /* the chat still works */ }
+  sRender();
+  pollRemote(true);
+}
+
+function pickHtml(p) {
+  const loaded = S.repos.some(r => r.name === p.folder);
+  return `<div class="res gcard"><div class="t"><b>PSI-${p.n}</b><span class="tag repo">${esc(p.group)}</span><span class="rel">${loaded ? `<button class="btn sm primary" data-open="${esc(p.folder)}">Open</button>` : `<button class="btn sm primary" data-load="${p.n}">Load from NASA</button>`}</span></div><p class="snip">${esc(p.title)}</p><p class="snip" style="color:var(--text)">${esc(p.reason)}</p></div>`;
+}
+
+function sRender() {
+  const log = $("#sLog");
+  log.innerHTML = (SCHAT.length ? SCHAT.map(m => m.role === "user" ? `<div class="msg u">${esc(m.text)}</div>`
+    : `<div class="msg a">${fmt(m.text)}${(m.picks || []).length ? `<div class="picks">${m.picks.map(pickHtml).join("")}</div>` : ""}</div>`).join("")
+    : '<div class="hint">Tell me what you want to study (fuel, environment, material, detection, suppression…) and I will suggest which PSI investigations to load.</div>')
+    + (sBusy ? '<div class="msg a">Thinking…</div>' : "");
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sSend(text) {
+  text = (text === undefined ? $("#sIn").value : text).trim();
+  if (!text || sBusy) return;
+  SCHAT.push({role: "user", text});
+  $("#sIn").value = "";
+  sBusy = true;
+  sRender();
+  try {
+    const j = await api("/api/recommend", {json: {messages: SCHAT.map(m => ({role: m.role, text: m.text})), lang: $("#lang").value}});
+    SCHAT.push({role: "assistant", text: j.text, picks: j.picks});
+  } catch (e) { SCHAT.push({role: "assistant", text: "Error: " + e.message}); }
+  sBusy = false;
+  sRender();
+}
+
+async function loadPsi(n) {
+  try {
+    await api("/api/remote/add", {json: {psi: String(n || "")}});
+    toast("Loading from NASA…", false, 4000);
+    pollRemote();
+  } catch (e) { toast(e.message, true); }
+}
+
+function pollRemote(quiet) {
+  clearTimeout(POLL);
+  const tick = async () => {
+    let items;
+    try { items = (await api("/api/remote/status")).items; } catch (e) { return; }
+    $("#aStatus").innerHTML = items.map(i => i.state === "loading"
+      ? `<div class="hint">PSI-${i.n}: loading ${i.done}/${i.total || "…"} files…</div>`
+      : i.state === "error" ? `<div class="out err">PSI-${i.n}: ${esc(i.error)}</div>`
+      : `<div class="hint">PSI-${i.n}: ready, ${i.done - i.skipped} files${i.skipped ? " (" + i.skipped + " skipped)" : ""}. <a href="#" data-open="${esc(i.folder)}">Open in Workspace</a></div>`).join("");
+    if (items.some(i => i.state === "loading")) POLL = setTimeout(tick, 1500);
+    else if (!quiet) { await loadIndex(true); sRender(); }
+  };
+  tick();
+}
+
+$("#sSend").onclick = () => sSend();
+$("#sIn").addEventListener("keydown", e => { if (e.key === "Enter") sSend(); });
+$("#sClear").onclick = () => { SCHAT = []; sRender(); };
+$("#tab-start .chips").querySelectorAll(".chip").forEach(c => c.onclick = () => sSend(c.textContent));
+$("#aLoad").onclick = () => loadPsi($("#aPsi").value);
+$("#aPsi").addEventListener("keydown", e => { if (e.key === "Enter") $("#aLoad").click(); });
+$("#tab-start").addEventListener("click", e => {
+  const o = e.target.closest("[data-open]"), l = e.target.closest("[data-load]");
+  if (o) { e.preventDefault(); openWork(o.dataset.open); }
+  if (l) loadPsi(l.dataset.load);
+});
+$("#aFiles").addEventListener("change", async e => {
+  const inp = e.target, n = $("#aPsi").value.trim();
+  if (!inp.files.length) return;
+  if (!/\d/.test(n)) { toast("Write the PSI number first", true); inp.value = ""; return; }
+  const fd = new FormData();
+  fd.append("psi", n);
+  [...inp.files].forEach(f => fd.append("files", f));
+  toast("Uploading…", false, 60000);
+  try {
+    const r = await (await fetch("/api/upload", {method: "POST", body: fd})).json();
+    if (!r.ok) throw new Error(r.error);
+    toast(`${r.saved} files saved` + (r.skipped.length ? `, ${r.skipped.length} skipped (unsupported type)` : ""));
+    await loadIndex(true);
+  } catch (err) { toast(err.message, true); }
+  inp.value = "";
+});
+
+function fillSel(sel, list) {
+  const el = $(sel), cur = el.value;
+  el.innerHTML = list.map(f => `<option value="${esc(f.id)}">${esc(f.id)}</option>`).join("");
+  if (list.some(f => f.id === cur)) el.value = cur;
+  return cur !== el.value;
+}
+
+async function loadFiles() {
+  try { FILES = (await api("/api/files")).files; } catch (e) { toast(e.message, true); return; }
+  await CP.setTables(FILES.filter(f => f.type === "csv" || f.type === "xlsx"));
+  const ic = $("#iFile").value;
+  $("#iFile").innerHTML = '<option value="">No file attached</option>' + FILES.filter(f => f.type !== "image").map(f => `<option value="${esc(f.id)}">${esc(f.name)} · ${esc(f.repo)}</option>`).join("");
+  if (FILES.some(f => f.id === ic)) $("#iFile").value = ic;
+  const first = !$("#mA").options.length;
+  refreshSide("A");
+  refreshSide("B");
+  if (first && FILES.length > 1 && $("#mB").value === $("#mA").value) {
+    const other = [...$("#mB").options].find(o => o.value !== $("#mA").value);
+    if (other) $("#mB").value = other.value;
+  }
+  mView();
+}
+
+function mView() {
+  const a = FILES.find(f => f.id === $("#mA").value), b = FILES.find(f => f.id === $("#mB").value);
+  if (!a || !b || a.type !== "image" || b.type !== "image") {
+    $("#mView").innerHTML = '<div class="hint" style="margin-top:10px">Pick two images to see them side by side. Any two files can be compared with AI.</div>';
+    return;
+  }
+  const u = f => "/api/raw?id=" + encodeURIComponent(f.id);
+  $("#mView").innerHTML = `<div class="pair"><figure><img src="${u(a)}" alt=""><figcaption>A · ${esc(a.id)}</figcaption></figure><figure><img src="${u(b)}" alt=""><figcaption>B · ${esc(b.id)}</figcaption></figure></div>`;
+}
+const grpOf = f => f.repo.split(" PSI-")[0];
+const psiOf = f => (f.repo.match(/PSI-\d+/) || [f.repo])[0];
+const uniq = a => [...new Set(a)].sort();
+
+function buildSides() {
+  ["A", "B"].forEach(k => {
+    $("#mSide" + k).innerHTML = `<div class="hint" style="margin-bottom:6px"><b>File ${k}</b></div><div class="row" style="margin-top:0">
+      <label class="lab">Investigation<select id="m${k}g"></select></label>
+      <label class="lab">PSI<select id="m${k}p"></select></label>
+      <label class="lab">File type<select id="m${k}t"></select></label>
+      <label class="lab">File<select id="m${k}"></select></label></div>`;
+    $("#mSide" + k).addEventListener("change", () => { refreshSide(k); mView(); });
+  });
+}
+
+function refreshSide(k) {
+  const g = $("#m" + k + "g"), p = $("#m" + k + "p"), t = $("#m" + k + "t"), f = $("#m" + k);
+  const fill = (el, vals, all) => {
+    const cur = el.value;
+    el.innerHTML = `<option value="">${all}</option>` + vals.map(v => `<option>${esc(v)}</option>`).join("");
+    if (vals.includes(cur)) el.value = cur;
+  };
+  fill(g, uniq(FILES.map(grpOf)), "All investigations");
+  const byG = FILES.filter(x => !g.value || grpOf(x) === g.value);
+  fill(p, uniq(byG.map(psiOf)), "All PSI");
+  const byP = byG.filter(x => !p.value || psiOf(x) === p.value);
+  fill(t, uniq(byP.map(x => x.type)), "All types");
+  const list = byP.filter(x => !t.value || x.type === t.value);
+  const cur = f.value;
+  f.innerHTML = list.map(x => `<option value="${esc(x.id)}">${esc(x.name)} · ${esc(x.repo)}</option>`).join("") || '<option value="">No files match</option>';
+  if (list.some(x => x.id === cur)) f.value = cur;
+}
+buildSides();
+$("#mGo").onclick = () => !$("#mA").value || !$("#mB").value ? toast("Pick a file on each side", true) : runAi("compare", $("#mGo"), $("#mOut"), {a: $("#mA").value, b: $("#mB").value}, "/api/compare");
+
+let RANKED = [], CHAT = [], chatBusy = false;
+
+function chatRender() {
+  const log = $("#chatLog");
+  log.innerHTML = (CHAT.length ? CHAT.map(m => m.role === "user"
+    ? `<div class="msg u">${esc(m.text)}</div>`
+    : `<div class="msg a">${fmt(m.text)}${m.sources && m.sources.length ? `<div class="src">Sources: ${m.sources.map(s => `<a href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.title)}</a>`).join(" · ")}</div>` : ""}${m.note ? `<span class="note">${esc(m.note)}</span>` : ""}</div>`).join("")
+    : '<div class="hint">Ask about any PSI combustion investigation: which ones fit a habitat, what data supports modeling, what informs new detectors, suppression or protective equipment, and what applies on Earth.</div>')
+    + (chatBusy ? '<div class="msg a">Thinking…</div>' : "");
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendChat(text) {
+  text = (text === undefined ? $("#chatIn").value : text).trim();
+  if (!text || chatBusy) return;
+  CHAT.push({role: "user", text});
+  $("#chatIn").value = "";
+  chatBusy = true;
+  chatRender();
+  const web = $("#iWeb").checked;
+  try {
+    const j = await api("/api/chat", {json: {messages: CHAT.map(m => ({role: m.role, text: m.text})), lang: $("#lang").value, file: $("#iFile").value, search: web}});
+    CHAT.push({role: "assistant", text: j.text, sources: j.sources, note: web && !j.grounded ? "Web search was unavailable; answered from the investigation list only." : ""});
+  } catch (e) { CHAT.push({role: "assistant", text: "Error: " + e.message}); }
+  chatBusy = false;
+  chatRender();
+}
+$("#chatSend").onclick = () => sendChat();
+$("#chatIn").addEventListener("keydown", e => { if (e.key === "Enter") sendChat(); });
+$("#chatClear").onclick = () => { CHAT = []; chatRender(); };
+$("#chips").querySelectorAll(".chip").forEach(c => c.onclick = () => sendChat(c.textContent));
+
+function renderRank() {
+  $("#rList").innerHTML = RANKED.map((r, i) => `<div class="res gcard">
+    <div class="t"><span class="rank">${i + 1}</span><b>PSI-${r.n}</b><span class="tag repo">${esc(r.group)}</span>
+      <span class="tag ${r.files ? "ok" : ""}">${r.files ? r.files + " files loaded" : "no files loaded"}</span>
+      <span class="rel"><span class="bar"><i style="width:${r.score}%"></i></span>${r.score}</span></div>
+    <p class="snip">${esc(r.title)}</p>
+    ${facetLine({facets: {cats: {fuel: r.fuels || []}, o2: r.o2, p: r.p}}) ? `<p class="snip">${esc(facetLine({facets: {cats: {fuel: r.fuels || []}, o2: r.o2, p: r.p}}))}</p>` : ""}
+    <p class="snip" style="color:var(--text)">${esc(r.reason)}</p>
+    <div class="row"><button class="btn sm" data-act="ask" data-n="${r.n}">Ask the chatbot</button>
+      <a class="btn sm" href="${esc(r.url)}" target="_blank" rel="noopener">Open in PSI ↗</a>
+      ${r.files ? `<button class="btn sm" data-act="open" data-f="${esc(r.folder)}">Open workspace</button><button class="btn sm" data-act="chart" data-f="${esc(r.folder)}">Chart its data</button>` : `<button class="btn sm primary" data-act="load" data-n="${r.n}">Load from NASA</button>`}</div></div>`).join("");
+}
+
+$("#rGo").onclick = async () => {
+  const btn = $("#rGo");
+  btn.disabled = true;
+  $("#rList").innerHTML = '<div class="hint">Ranking…</div>';
+  try {
+    RANKED = (await api("/api/rank", {json: {env: $("#rEnv").value, lens: $("#rLens").value, lang: $("#lang").value, refresh: $("#rRegen").checked}})).items;
+    renderRank();
+  } catch (e) { $("#rList").innerHTML = `<div class="out err">${esc(e.message)}</div>`; }
+  btn.disabled = false;
+};
+
+async function openCharts(folder) {
+  showTab("charts");
+  await loadFiles();
+  const t = FILES.find(f => f.repo === folder && (f.type === "csv" || f.type === "xlsx"));
+  if (!t) { toast("No table loaded for this investigation", true); return; }
+  await CP.setTables(FILES.filter(f => f.type === "csv" || f.type === "xlsx"), t.id);
+}
+
+$("#rList").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  if (b.dataset.act === "chart") openCharts(b.dataset.f);
+  if (b.dataset.act === "open") openWork(b.dataset.f);
+  if (b.dataset.act === "load") { loadPsi(b.dataset.n); showTab("start"); }
+  if (b.dataset.act === "ask") {
+    const r = RANKED.find(x => x.n === Number(b.dataset.n));
+    sendChat(`Tell me about PSI-${r.n} (${r.title}): what it studied, what its results say about fire safety for ${$("#rEnv").selectedOptions[0].text.toLowerCase()}, and what data or papers I can use.`);
+  }
+});
+chatRender();
+
+const t0 = LS.get("tab", "start");
+showTab(TABS.includes(t0) ? t0 : "start");
+api("/api/logos").then(j => ["#logoL", "#logoR"].forEach((s, i) => {
+  if (j.logos[i]) { $(s).src = "/logos/" + encodeURIComponent(j.logos[i]); $(s).hidden = false; }
+})).catch(() => {});
+loadIndex(true).catch(e => toast(e.message, true, 8000));
+setInterval(() => loadIndex(false).catch(() => {}), 8000);
+</script>
+</body>
+</html>

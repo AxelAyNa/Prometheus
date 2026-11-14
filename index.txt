@@ -1,0 +1,63 @@
+Archived Combustion Experiments
+
+Advanced Combustion via Microgravity Experiments (ACME)     ACME is focused on advanced combustion technology via fundamental microgravity research. The primary goal is to improve efficiency and reduce pollutant emission in practical terrestrial combustion.
+
+Burning and Suppression of Solids (BASS)                    The Burning and Suppression of Solids (BASS) investigation examines the burning and extinction characteristics of a wide variety of fuel samples in microgravity.
+
+Dust and Aerosol Measurement Feasibility Test (DAFT)        The Dust and Aerosol Measurement Feasibility Test (DAFT) was designed to ensure that a modified P-Trak—a key component of the forthcoming NASA Smoke Aerosol Measurement Experiment (SAME)—will perform properly in the unique environment of microgravity.
+
+Flame Extinguishment Experiment (FLEX)                      The Flame Extinguishment Experiment (FLEX) experiment was designed to assess and quantify the effectiveness of inert-gas suppressants in microgravity and obtain the most conservative estimate of the limiting oxygen index for steady combustion.
+
+Spacecraft Fire Safety Demonstration (Saffire)              Creating a safe environment for astronauts is the number one priority for all crew missions. 
+
+Smoke Aerosol Measurement Experiment (SAME)                 Spacecraft smoke detectors must detect different types of smoke. For example, hydrocarbon fuels typically produce soot and plastics produce droplets of recondensed polymer fragments.
+
+Structure & Liftoff in Combustion Experiment (SLICE)        Coflow laminar diffusion flames are especially valuable for studies of combustion because of the availability of accurate numerical modeling with that flame configuration.
+
+Smoke Point in Co-flow Experiment (SPICE)                   The Smoke Point In Co-flow Experiment will continue the study of fundamental phenomena related to understanding the mechanisms controlling the stability and extinction of jet diffusion flames begun with the Laminar Soot Processes (LSP) on STS-94.
+
+Datasets
+
+ACME:
+    PSI-159  Advanced Combustion via Microgravity Experiments / Cool Flames Investigation with Gases(ACME CFI-G)
+    PSI-10   Advanced Combustion via Microgravity Experiments / Flame Design(ACME/Flame Design)
+    PSI-21   Advanced Combustion via Microgravity Experiments / Coflow Laminar Diffusion Flame(ACME CLD Flame)
+    PSI-20   Advanced Combustion via Microgravity Experiments - Burning Rate Emulator(ACME BRE)
+    PSI-22   Advanced Combustion via Microgravity Experiments Electric-Field Effects on Laminar Diffusion Flames(ACME E-FIELD Flames)
+    PSI-23   Advanced Combustion via Microgravity Experiments-Structure and Response of Spherical Diffusion Flames(ACME s-Flame)
+
+BASS:
+    PSI-62   Concurrent Flame Spread Modeling using Flamelet Generated Manifolds in Microgravity with Comparison to BASS Experiments using Two-Color Tomography
+    PSI-25   Burning and Suppression of Solids - II(BASS-II)
+    PSI-25   Burning and Suppression of Solids(BASS)
+
+DAFT:
+    PSI-47   Dust and Aerosol Measurement Feasibility Test / Dust and Aerosol Measurement Feasibility Test-2(DAFT / DAFT-2)
+
+FLEX:
+    PSI-68   Flame Extinguishment Experiment - 2(FLEX-2)
+    PSI-69   Flame Extinguishment Experiment(FLEX)
+
+SAFFIRE:
+    PSI-98   Spacecraft Fire Safety Experiment-I(SAFFIRE-I)
+    PSI-99   Spacecraft Fire Experiment-II(SAFFIRE-II)
+    PSI-100  Spacecraft Fire Experiment-III(SAFFIRE-III)
+
+SAME:
+    PSI-101  Smoke Aerosol Measurement Experiment-Reflight(SAME-R)
+    PSI-102  Smoke and Aerosol Measurement Experiment(SAME)
+
+SLICE:
+    PSI-106  Structure and Liftoff In Combustion Experiment(SLICE)
+
+SPICE:
+    PSI-60   Computational and Experimental Analysis of SPICE Data Sets
+    PSI-107  Smoke Point In Co-flow Experiment(SPICE)
+
+Unorganized:
+    PSI-117  Effect of External Thermo-Convective Perturbation on Cool Flame Dynamics: A Multidimensional Multi-Physics CFD Analysis
+    PSI-181  Structure and Properties of Pb-Sn and Pb-free Sn-Ag-Cu Solders Produced in Terrestrial vs. Microgravity Environments under Extremes of Elevated and Cryo Temperatures
+    PSI-142  Quantitative Studies of Cool Flame Transitions at Radiation / Stretch Extinction Using Counterflow Flames
+    PSI-108  Surface Tension Driven Convection Experiment-1(STDCE-1)
+    PSI-115  Utilization of the Smoke Aerosol Measurement Experiment Data for Advanced Modeling and Simulation of Smoke Generation in Micro-Gravity
+    PSI-39   Cool Flames Investigation(CFI)
