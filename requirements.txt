@@ -1,0 +1,7 @@
+flask
+pandas
+openpyxl
+pypdf
+python-dotenv
+google-genai
+gunicorn
