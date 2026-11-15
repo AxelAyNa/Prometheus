@@ -31,6 +31,13 @@ button,input,select{font:inherit;color:inherit}
 .side-f .conn>*{width:100%}
 .side-f .pill{justify-content:flex-start}
 .side-f select,.side-f .btn{width:100%}
+.keybox{padding:0 0 12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.krow{display:flex;gap:6px;align-items:center}
+.krow input{flex:1;min-width:0;font-size:12px;padding:6px 9px}
+.side-f .krow .btn{width:auto;flex:none}
+.kon{flex:1;min-width:0;font-size:12px;color:var(--ok);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.khint{font-size:11px;color:var(--muted);margin-top:6px;padding:0 2px}
+.khint a{color:var(--accent)}
 @media (max-width:560px){.appbar-in{gap:10px;padding-left:12px;padding-right:12px}.appbar-in{grid-template-columns:auto 1fr}.ar{display:none}.al{gap:10px}.appbar .logo{height:26px}.pword{font-size:14px}.psub{font-size:8.5px;letter-spacing:.3px}.plock{min-width:0}}
 @media (max-width:700px){.topbar-in{min-height:60px;gap:12px}.lasalle{height:40px}.mark{height:26px}.pword{font-size:17px}.psub{font-size:9.5px;letter-spacing:.5px}}
 .brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.2px}
@@ -68,8 +75,15 @@ main{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px;padding:16p
 .big{width:100%;font-size:16px;padding:11px 14px}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
 .row input{flex:1;min-width:140px}
-.chk{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap}
-input[type=checkbox]{padding:0;width:auto;margin:0;accent-color:var(--accent)}
+.chk{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
+.chk:hover,.chk:has(input:checked){color:var(--text)}
+html input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:30px;min-width:30px;height:18px;margin:0;padding:0;border-radius:999px;background:#273041;border:1px solid #344055;cursor:pointer;transition:background .18s,border-color .18s}
+html input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#aeb7c6;box-shadow:0 1px 2px rgba(0,0,0,.45);transition:transform .18s ease,background .18s}
+html input[type=checkbox]:hover{border-color:#4a5870}
+html input[type=checkbox]:checked{background:var(--accent);border-color:var(--accent)}
+html input[type=checkbox]:checked::after{transform:translateX(12px);background:#fff}
+html input[type=checkbox]:focus-visible{outline:2px solid rgba(58,160,255,.55);outline-offset:2px}
+html input[type=checkbox]:disabled{opacity:.45;cursor:default}
 details.terms{margin-top:10px}
 details.terms summary{cursor:pointer;color:var(--muted);font-size:12.5px}
 details.terms input{width:100%;margin-top:8px;font-family:var(--mono);font-size:12.5px}
@@ -191,6 +205,58 @@ input[type=range]{width:100%;margin-top:10px;accent-color:var(--accent);padding:
 .wgrid>.card{background:var(--panel2)}
 .span2{grid-column:1/-1}
 .fbtns{display:flex;gap:6px;flex-wrap:wrap}
+.fbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:14px 0 8px}
+.fsearch{flex:1 1 240px;min-width:180px;position:relative}
+.fsearch input{width:100%;box-sizing:border-box;padding:7px 30px 7px 32px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font:inherit;font-size:13px}
+.fsearch input:focus{outline:none;border-color:var(--accent)}
+.fsearch svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--muted);pointer-events:none}
+.fsearch .x{position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:4px 8px}
+.fsearch .x:hover{color:var(--text)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:999px;padding:4px 11px;font:inherit;font-size:12px;cursor:pointer}
+.chip:hover{color:var(--text)}
+.chip.on{color:var(--text);border-color:var(--accent);background:rgba(58,160,255,.12)}
+.chip b{font-weight:600;opacity:.6;margin-left:4px}
+.fgroup{border:1px solid var(--line);border-radius:8px;margin-top:6px;background:var(--panel)}
+.fgroup>summary{list-style:none;cursor:pointer;padding:8px 12px;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;user-select:none}
+.fgroup>summary::-webkit-details-marker{display:none}
+.fgroup>summary::before{content:"\203A";display:inline-block;width:10px;color:var(--muted);font-size:17px;line-height:1;transition:transform .15s}
+.fgroup[open]>summary::before{transform:rotate(90deg)}
+.fgroup>summary:hover{color:var(--accent)}
+.fgroup>summary .tag{margin-left:auto}
+.flist{padding:0 6px 6px}
+.fitem{display:flex;align-items:center;gap:8px;width:100%;text-align:left;border:0;background:none;color:var(--text);padding:6px 8px;border-radius:6px;cursor:pointer;font:inherit;font-size:13px}
+.fitem:hover{background:var(--panel2)}
+.fitem.on{background:rgba(58,160,255,.16)}
+.fitem .ic{width:20px;text-align:center;flex:none}
+.fitem .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fitem mark{background:rgba(245,165,36,.35);color:inherit;border-radius:2px}
+.fempty{padding:12px 4px}
+.rbox{margin-top:12px}
+.rbox textarea{width:100%;box-sizing:border-box;resize:vertical;min-height:54px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font:inherit;font-size:13px}
+.rbox textarea:focus{outline:none;border-color:var(--accent)}
+.rrow{display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap}
+.rrow .hint{margin:0}
+.md{white-space:normal}
+.md>:first-child{margin-top:0}
+.md>:last-child{margin-bottom:0}
+.md p{margin:0 0 9px}
+.md h3,.md h4,.md h5,.md h6{margin:16px 0 6px;line-height:1.3;color:#fff}
+.md h3{font-size:16px}.md h4{font-size:14.5px}.md h5{font-size:13.5px}.md h6{font-size:13px;color:var(--muted)}
+.md ul,.md ol{margin:0 0 9px;padding-left:22px}
+.md li{margin:4px 0}
+.md li>ul,.md li>ol{margin:4px 0 0}
+.md li::marker{color:var(--muted)}
+.md b{color:#fff}
+.md code{font-family:var(--mono);font-size:12px;background:#1a2130;padding:1px 5px;border-radius:4px}
+.md pre.ex{white-space:pre-wrap;margin:0 0 9px}
+.md blockquote{margin:0 0 9px;padding:2px 12px;border-left:3px solid var(--accent);color:var(--muted)}
+.md hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+.md .tw{overflow:auto;margin:0 0 10px}
+.md table{border-collapse:collapse;font-size:12.5px}
+.md th,.md td{border:1px solid var(--line);padding:5px 9px;text-align:left;vertical-align:top}
+.md th{background:var(--panel2);font-weight:600}
+.md a{color:var(--accent)}
 @media (max-width:1100px){.wgrid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -219,7 +285,12 @@ input[type=range]{width:100%;margin-top:10px;accent-color:var(--accent);padding:
     <button data-tab="compare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-7m0-18H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7m0-18v18"/></svg><span class="lbl">Compare</span><span class="n">5</span></button>
     <button data-tab="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span class="lbl">Safety insights</span><span class="n">6</span></button>
   </nav>
-  <div class="side-f"><div class="side-f-h">Status &amp; settings</div><div class="conn">
+  <div class="side-f"><div class="keybox">
+    <div class="side-f-h">Gemini API key</div>
+    <div class="krow" id="gKeyNew"><input type="password" id="gKey" placeholder="Paste your API key" autocomplete="off" spellcheck="false" aria-label="Gemini API key"><button class="btn sm primary" id="gKeySave">Save</button></div>
+    <div class="krow" id="gKeyHas" hidden><span class="kon" id="gKeyOn"></span><button class="btn sm" id="gKeyDel">Remove</button></div>
+    <div class="khint">Saved only in this browser. <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener">Get a free key</a></div>
+  </div><div class="side-f-h">Status &amp; settings</div><div class="conn">
     <span class="pill on" id="pRepos"><span class="dot"></span><span id="pReposTxt">…</span></span>
     <span class="pill on" id="pFiles"><span class="dot"></span><span id="pFilesTxt">…</span></span>
     <span class="pill" id="pAi"><span class="dot"></span><span id="pAiTxt">AI…</span></span>
@@ -427,8 +498,81 @@ function mark(text, ts) {
   const re = new RegExp("(" + ts.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi");
   return text.split(re).map((p, i) => i % 2 ? "<mark>" + esc(p) + "</mark>" : esc(p)).join("");
 }
+function mdInline(s) {
+  let t = esc(s);
+  const codes = [];
+  t = t.replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return "\u0000" + (codes.length - 1) + "\u0000"; });
+  t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  t = t.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+  t = t.replace(/(^|[^*\w])\*(?!\s)(.+?)(?<!\s)\*(?!\*)/g, "$1<i>$2</i>");
+  return t.replace(/\u0000(\d+)\u0000/g, (_, i) => `<code>${codes[i]}</code>`);
+}
+function mdList(items) {
+  let html = "";
+  const st = [];
+  for (const it of items) {
+    while (st.length && it.ind < st[st.length - 1].ind) html += `</li></${st.pop().tag}>`;
+    let top = st[st.length - 1];
+    if (top && it.ind === top.ind && (it.ol ? "ol" : "ul") !== top.tag) { html += `</li></${st.pop().tag}>`; top = st[st.length - 1]; }
+    if (!top || it.ind > top.ind) {
+      const tag = it.ol ? "ol" : "ul";
+      html += `<${tag}${it.ol && it.start > 1 ? ` start="${it.start}"` : ""}>`;
+      st.push({ind: it.ind, tag});
+    } else html += "</li>";
+    html += `<li>${mdInline(it.text)}`;
+  }
+  while (st.length) html += `</li></${st.pop().tag}>`;
+  return html;
+}
+function md(src) {
+  const L = String(src ?? "").replace(/\r/g, "").split("\n"), out = [];
+  const sep = l => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/.test(l);
+  const isTable = i => L[i].includes("|") && i + 1 < L.length && sep(L[i + 1]);
+  const cells = l => l.trim().replace(/^\||\|$/g, "").split("|").map(c => mdInline(c.trim()));
+  const LIST = /^(\s*)([-*+•]|\d+[.)])\s+(.*)$/;
+  let i = 0, m;
+  while (i < L.length) {
+    const l = L[i];
+    if (/^\s*```/.test(l)) {
+      const b = []; i++;
+      while (i < L.length && !/^\s*```/.test(L[i])) b.push(L[i++]);
+      i++; out.push(`<pre class="ex">${esc(b.join("\n"))}</pre>`); continue;
+    }
+    if (!l.trim()) { i++; continue; }
+    if ((m = l.match(/^\s*(#{1,6})\s+(.*)$/))) {
+      const lv = Math.min(m[1].length + 2, 6);
+      out.push(`<h${lv}>${mdInline(m[2].replace(/\s#+\s*$/, ""))}</h${lv}>`); i++; continue;
+    }
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(l)) { out.push("<hr>"); i++; continue; }
+    if (isTable(i)) {
+      const head = cells(l), rows = []; i += 2;
+      while (i < L.length && L[i].includes("|") && L[i].trim()) rows.push(cells(L[i++]));
+      out.push(`<div class="tw"><table><thead><tr>${head.map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`);
+      continue;
+    }
+    if (/^\s*>/.test(l)) {
+      const b = [];
+      while (i < L.length && /^\s*>/.test(L[i])) b.push(L[i++].replace(/^\s*>\s?/, ""));
+      out.push(`<blockquote>${md(b.join("\n"))}</blockquote>`); continue;
+    }
+    if (LIST.test(l)) {
+      const items = [];
+      while (i < L.length) {
+        const mm = L[i].match(LIST);
+        if (mm) { items.push({ind: mm[1].replace(/\t/g, "    ").length, ol: /\d/.test(mm[2]), start: parseInt(mm[2]), text: mm[3]}); i++; }
+        else if (items.length && L[i].trim() && /^\s{2,}/.test(L[i])) { items[items.length - 1].text += " " + L[i].trim(); i++; }
+        else break;
+      }
+      out.push(mdList(items)); continue;
+    }
+    const p = [l.trim()]; i++;
+    while (i < L.length && L[i].trim() && !/^\s*(#{1,6}\s|```|>)/.test(L[i]) && !LIST.test(L[i]) && !isTable(i)) p.push(L[i++].trim());
+    out.push(`<p>${p.map(mdInline).join("<br>")}</p>`);
+  }
+  return out.join("");
+}
 function fmt(t) {
-  return esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").split("\n").map(l => l.replace(/^\s*[*-]\s+/, "• ")).join("\n");
+  return `<div class="md">${md(t)}</div>`;
 }
 function toast(msg, err = false, ms = 4500) {
   const t = $("#toast");
@@ -440,9 +584,11 @@ function toast(msg, err = false, ms = 4500) {
 }
 async function api(path, opts = {}) {
   const o = {...opts};
+  const key = LS.get("gkey", "");
+  o.headers = {...(o.headers || {}), ...(key ? {"X-Gemini-Key": key} : {})};
   if (o.json !== undefined) {
     o.method = "POST";
-    o.headers = {"Content-Type": "application/json"};
+    o.headers["Content-Type"] = "application/json";
     o.body = JSON.stringify(o.json);
     delete o.json;
   }
@@ -462,7 +608,7 @@ async function loadIndex(first) {
   $("#pReposTxt").textContent = j.repos.length + " repositories";
   $("#pFilesTxt").textContent = j.files + " files indexed";
   $("#pAi").className = "pill " + (j.ai ? "on" : "err");
-  $("#pAiTxt").textContent = j.ai ? "AI ready · " + j.model : "AI key missing in .env";
+  $("#pAiTxt").textContent = j.ai ? "AI ready · " + j.model : "AI off · add your API key";
   if (first && !$("#fire").value) $("#fire").value = LS.get("fire", j.fire);
   if (S.repo && !j.repos.some(r => r.name === S.repo)) S.repo = "";
   if (first || changed) { await loadFacets(); await runSearch(); } else renderRepos();
@@ -576,7 +722,7 @@ async function runAi(task, btn, out, extra, url = "/api/ai") {
   try {
     const j = await api(url, {json: body});
     if (out._tk !== tk) return;
-    out.innerHTML = fmt(j.text) + (j.cached ? '<span class="note">Saved answer, no new API call. Tick "regenerate" for a fresh one.</span>' : "");
+    out.innerHTML = fmt(j.text) + (j.note ? `<span class="note">${esc(j.note)}</span>` : "") + (j.cached ? '<span class="note">Saved answer, no new API call. Tick "regenerate" for a fresh one.</span>' : "");
   } catch (e) {
     if (out._tk !== tk) return;
     out.className = "out err";
@@ -603,6 +749,28 @@ $("#fire").addEventListener("input", () => { LS.set("fire", $("#fire").value); l
 $("#type").addEventListener("change", runSearch);
 $("#lang").value = LS.get("lang", "en");
 $("#lang").addEventListener("change", e => LS.set("lang", e.target.value));
+function keyUi() {
+  const k = LS.get("gkey", "");
+  $("#gKeyNew").hidden = !!k;
+  $("#gKeyHas").hidden = !k;
+  $("#gKeyOn").textContent = k ? "✓ Key saved ····" + k.slice(-4) : "";
+}
+$("#gKeySave").onclick = async () => {
+  const v = $("#gKey").value.trim();
+  if (!v) { $("#gKey").focus(); return; }
+  const b = $("#gKeySave");
+  b.disabled = true; b.textContent = "Checking…";
+  LS.set("gkey", v);
+  try {
+    await api("/api/key/check", {json: {}});
+    $("#gKey").value = "";
+    toast("API key saved. AI features are on.");
+  } catch (e) { LS.set("gkey", ""); toast(e.message, true, 7000); }
+  finally { b.disabled = false; b.textContent = "Save"; keyUi(); loadIndex(); }
+};
+$("#gKey").addEventListener("keydown", e => { if (e.key === "Enter") $("#gKeySave").click(); });
+$("#gKeyDel").onclick = () => { LS.set("gkey", ""); keyUi(); loadIndex(); toast("API key removed from this browser."); };
+keyUi();
 $("#reindex").onclick = async () => {
   try { await api("/api/reindex", {json: {}}); await loadIndex(true); toast("Reindexed"); }
   catch (e) { toast(e.message, true); }
@@ -801,6 +969,66 @@ class ChartPanel {
 
 const CP = new ChartPanel($("#cPanel"));
 let WDATA = null;
+let WF = {q: "", k: "", open: new Set(), sel: ""};
+const FKIND = {pdf: "Documents", csv: "Tables", xlsx: "Tables", image: "Images"};
+const FICON = {pdf: "📄", csv: "📊", xlsx: "📊", image: "🖼️"};
+const fKind = f => FKIND[f.type] || "Other";
+function fParts(f) {
+  const base = f.name.replace(/\.[^.]+$/, "");
+  const p = base.split("_").map(x => x.trim()).filter(Boolean);
+  if (p.length >= 3 && /^PSI-?\d+$/i.test(p[0])) return {cat: p[1], short: p.slice(2).join(" · ")};
+  if (p.length === 2 && /^PSI-?\d+$/i.test(p[0])) return {cat: fKind(f), short: p[1]};
+  return {cat: fKind(f), short: base};
+}
+function hl(text, q) {
+  if (!q) return esc(text);
+  const i = text.toLowerCase().indexOf(q);
+  return i < 0 ? esc(text) : esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + q.length)) + "</mark>" + esc(text.slice(i + q.length));
+}
+function wFiles() {
+  const box = $("#wFiles");
+  if (!box || !WDATA) return;
+  const q = WF.q.trim().toLowerCase();
+  const hit = f => !q || (f.name + " " + fParts(f).cat).toLowerCase().includes(q);
+  const byQ = WDATA.files.filter(hit);
+  const kinds = ["Documents", "Tables", "Images", "Other"].filter(k => WDATA.files.some(f => fKind(f) === k));
+  $("#wChips").innerHTML = kinds.length > 1 ? [["", "All", byQ.length], ...kinds.map(k => [k, k, byQ.filter(f => fKind(f) === k).length])]
+    .map(([k, l, n]) => `<button class="chip ${WF.k === k ? "on" : ""}" data-k="${k}">${l}<b>${n}</b></button>`).join("") : "";
+  const list = byQ.filter(f => !WF.k || fKind(f) === WF.k);
+  $("#wQx").hidden = !WF.q;
+  if (!list.length) {
+    box.innerHTML = `<div class="hint fempty">No files match${q ? ` “${esc(WF.q.trim())}”` : ""}. <a href="#" data-clear>Show all files</a></div>`;
+    return;
+  }
+  const groups = new Map();
+  list.forEach(f => { const c = fParts(f).cat; if (!groups.has(c)) groups.set(c, []); groups.get(c).push(f); });
+  const filtering = !!(q || WF.k), only = groups.size === 1;
+  box.innerHTML = [...groups.keys()].sort((a, b) => a.localeCompare(b)).map(c => {
+    const fs = groups.get(c);
+    const open = filtering || only || WF.open.has(c);
+    return `<details class="fgroup" data-cat="${esc(c)}" ${open ? "open" : ""}><summary>${hl(c, q)}<span class="tag">${fs.length}</span></summary><div class="flist">` +
+      fs.map(f => `<button class="fitem ${f.id === WF.sel ? "on" : ""}" data-id="${esc(f.id)}" title="${esc(f.name)}"><span class="ic">${FICON[f.type] || "📎"}</span><span class="nm">${hl(fParts(f).short, q)}</span><span class="tag">${esc((f.ext || f.type).toUpperCase())}</span></button>`).join("") +
+      "</div></details>";
+  }).join("");
+}
+function wInitFiles() {
+  const box = $("#wFiles"), inp = $("#wQ");
+  let t;
+  inp.oninput = () => { clearTimeout(t); t = setTimeout(() => { WF.q = inp.value; wFiles(); }, 120); };
+  inp.onkeydown = e => { if (e.key === "Escape" && inp.value) { e.preventDefault(); inp.value = ""; WF.q = ""; wFiles(); } };
+  $("#wQx").onclick = () => { inp.value = ""; WF.q = ""; wFiles(); inp.focus(); };
+  $("#wChips").onclick = e => { const b = e.target.closest("[data-k]"); if (b) { WF.k = b.dataset.k; wFiles(); } };
+  box.onclick = e => {
+    if (e.target.closest("[data-clear]")) { e.preventDefault(); inp.value = ""; WF.q = ""; WF.k = ""; wFiles(); return; }
+    const b = e.target.closest("[data-id]"); if (b) wShow(b.dataset.id);
+  };
+  box.addEventListener("toggle", e => {
+    const d = e.target;
+    if (WF.q.trim() || WF.k || !d.dataset || !d.dataset.cat) return;
+    d.open ? WF.open.add(d.dataset.cat) : WF.open.delete(d.dataset.cat);
+  }, true);
+  wFiles();
+}
 
 function openWork(name) {
   if (!name) return;
@@ -834,7 +1062,8 @@ async function wShow(id) {
     } catch (e) { h = `<div class="card-b"><div class="out err">${esc(e.message)}</div></div>`; }
   }
   $("#wViewer").innerHTML = h;
-  document.querySelectorAll("#wFileBtns .btn").forEach(b => b.classList.toggle("primary", b.dataset.id === id));
+  WF.sel = id;
+  document.querySelectorAll("#wFiles .fitem").forEach(b => b.classList.toggle("on", b.dataset.id === id));
 }
 
 async function renderRepoView(name) {
@@ -843,24 +1072,42 @@ async function renderRepoView(name) {
   catch (e) { S.curW = ""; renderWork(); return; }
   if (name !== S.curW) return;
   WDATA = j;
+  WF = {q: "", k: "", open: new Set(), sel: ""};
   const r = S.repos.find(x => x.name === name) || {};
   $("#wTitle").textContent = name;
   $("#wBody").innerHTML = `<div class="card-b">
-    <div class="row" style="margin-top:0"><button class="btn sm" id="wBack">← All repositories</button><button class="btn sm primary" id="wGen">✦ AI overview</button>${r.remote ? '<button class="btn sm" id="wDel">Remove</button>' : ""}</div>
+    <div class="row" style="margin-top:0"><button class="btn sm" id="wBack">← All repositories</button><button class="btn sm primary" id="wGen">✦ AI overview</button><button class="btn sm" id="wRes" title="Deep research across every page of this PSI">⌕ Research</button>${r.remote ? '<button class="btn sm" id="wDel">Remove</button>' : ""}</div>
     <div class="out" id="wAi" style="display:none"></div>
-    <div class="hint" style="margin:12px 0 6px">Files</div>
-    <div class="fbtns" id="wFileBtns">${j.files.map(f => `<button class="btn sm" data-id="${esc(f.id)}">${esc(f.name)}</button>`).join("")}</div></div>
+    <div class="rbox" id="wResBox" hidden>
+      <textarea id="wResQ" rows="2" placeholder="What do you want to research? e.g. How does oxygen concentration affect cool-flame extinction?"></textarea>
+      <div class="rrow"><button class="btn sm primary" id="wResGo">Run research</button><span class="hint">Reads every document in this PSI. Can take up to a minute.</span></div>
+    </div>
+    <div class="out" id="wResOut" style="display:none"></div>
+    <div class="fbar">
+      <div class="fsearch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="wQ" type="search" placeholder="Search ${j.files.length} files…" autocomplete="off" aria-label="Search files"><button class="x" id="wQx" title="Clear" hidden>×</button></div>
+      <div class="chips" id="wChips"></div>
+    </div>
+    <div id="wFiles"></div></div>
     <div id="wViewer"></div>`;
   $("#wBack").onclick = () => { S.curW = ""; LS.set("curW", ""); renderWork(); };
-  $("#wFileBtns").onclick = e => { const b = e.target.closest("[data-id]"); if (b) wShow(b.dataset.id); };
+  wInitFiles();
   $("#wGen").onclick = () => runAi("repo", $("#wGen"), $("#wAi"), {repo: name});
+  $("#wRes").onclick = () => { const bx = $("#wResBox"); bx.hidden = !bx.hidden; $("#wRes").classList.toggle("primary", !bx.hidden); if (!bx.hidden) $("#wResQ").focus(); };
+  $("#wResGo").onclick = () => {
+    const q = $("#wResQ").value.trim();
+    if (!q) { $("#wResQ").focus(); return; }
+    runAi("research", $("#wResGo"), $("#wResOut"), {repo: name, question: q}, "/api/research");
+    $("#wResOut").textContent = "Researching every document in " + name + "… this can take up to a minute.";
+  };
+  $("#wResQ").onkeydown = e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("#wResGo").click(); } };
   if ($("#wDel")) $("#wDel").onclick = async () => {
     if (!confirm("Remove " + name + " from the dashboard? You can load it again from NASA.")) return;
     try { await api("/api/remote/remove", {json: {repo: name}}); S.curW = ""; await loadIndex(true); renderWork(); }
     catch (e) { toast(e.message, true); }
   };
   const first = j.files.find(f => f.type === "pdf") || j.files.find(f => f.type === "image");
-  if (first) wShow(first.id);
+  if (first) { WF.open.add(fParts(first).cat); WF.sel = first.id; wFiles(); wShow(first.id); }
   if ($("#auto").checked) $("#wGen").click();
 }
 

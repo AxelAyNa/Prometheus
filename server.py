@@ -36,6 +36,7 @@ FIRE_TERMS = "fire, flame, flammab, combust, ignition, smoke, extinguish, suppre
 ROWS_PER_CHUNK = 50
 PREVIEW_ROWS = 40
 AI_LIMIT = 40000
+RESEARCH_LIMIT = int(os.getenv("ResearchLimit", "400000"))
 INDEX_VERSION = 4
 INDEX_CACHE = BASE / "index_cache.pkl"
 MAX_SEARCH_CHUNKS = 60
@@ -58,7 +59,7 @@ app.config["MAX_CONTENT_LENGTH"] = 1024 * 1048576
 DOCS = {}
 LOCK = threading.Lock()
 STATE = {"checked": 0.0}
-CLIENT = None
+CLIENTS = {}
 
 try:
     CACHE = json.loads(CACHE_FILE.read_text(encoding="utf-8"))
@@ -400,7 +401,12 @@ def doc_text(d):
 
 
 def api_key():
-    return os.getenv("GeminiAPIKey") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    """Key sent by the visitor's browser (X-Gemini-Key); falls back to the server .env if one is set."""
+    try:
+        user = (request.headers.get("X-Gemini-Key") or "").strip()
+    except RuntimeError:
+        user = ""
+    return user or os.getenv("GeminiAPIKey") or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
 
 def gemini(prompt):
@@ -856,14 +862,27 @@ CHAT_SYSTEM = (
 
 
 def get_client():
-    global CLIENT
-    if CLIENT is None:
-        key = api_key()
-        if not key:
-            raise RuntimeError("GeminiAPIKey is missing in the .env file")
+    key = api_key()
+    if not key:
+        raise RuntimeError("Add your Gemini API key in the sidebar (above Status & settings) to use the AI features.")
+    if key not in CLIENTS:
         from google import genai
-        CLIENT = genai.Client(api_key=key)
-    return CLIENT
+        if len(CLIENTS) > 50:
+            CLIENTS.clear()
+        CLIENTS[key] = genai.Client(api_key=key)
+    return CLIENTS[key]
+
+
+@app.post("/api/key/check")
+def key_check():
+    try:
+        call(lambda: get_client().models.get(model=MODEL))
+        return jsonify(ok=True, model=MODEL)
+    except Exception as e:
+        msg = str(e)
+        if any(x in msg for x in ("API_KEY_INVALID", "API key not valid", "PERMISSION_DENIED", "401", "403")):
+            msg = "That API key was rejected by Gemini. Check it and try again."
+        return jsonify(ok=False, error=msg), 400
 
 
 def catalog_text():
@@ -1042,6 +1061,72 @@ def ai():
                 return jsonify(ok=False, error="Unknown task"), 400
         text, cached = answer(key, instruction, content, lang, refresh)
         return jsonify(ok=True, text=text, cached=cached)
+    except Exception as e:
+        return jsonify(ok=False, error=str(e)), 500
+
+
+STOP = set("""a an and are as at be by can de del do does el en es for from has have how in is it la las los of on or que the to was were what when where which who why with y""".split())
+
+
+@app.post("/api/research")
+def research():
+    b = request.get_json(force=True)
+    repo = b.get("repo")
+    question = (b.get("question") or "").strip()
+    lang = "Spanish" if b.get("lang") == "es" else "English"
+    if not question:
+        return jsonify(ok=False, error="Write what you want to research first"), 400
+    docs = sorted((d for d in DOCS.values() if d["repo"] == repo), key=lambda d: d["name"].lower())
+    if not docs:
+        return jsonify(ok=False, error="Repository not found"), 404
+    try:
+        ts = [t for t in re.findall(r"[\w\-\.%]+", question.lower()) if len(t) > 2 and t not in STOP]
+        units = []
+        for d in docs:
+            if d["type"] == "image":
+                continue
+            for n, (label, text, low) in enumerate(d["chunks"]):
+                if text.strip():
+                    score = sum(low.count(t) for t in ts) + sum(3 for t in ts if t in d["name"].lower())
+                    units.append({"doc": d, "n": n, "label": label, "text": text.strip(), "score": score})
+        if not units:
+            return jsonify(ok=False, error="This repository has no readable text"), 400
+        total = sum(len(u["text"]) for u in units)
+        if total <= RESEARCH_LIMIT:
+            chosen, full = units, True
+        else:
+            chosen, used, full = [], 0, False
+            for u in sorted(units, key=lambda u: -u["score"]):
+                if used + len(u["text"]) > RESEARCH_LIMIT:
+                    continue
+                chosen.append(u)
+                used += len(u["text"])
+            order = {d["id"]: i for i, d in enumerate(docs)}
+            chosen.sort(key=lambda u: (order[u["doc"]["id"]], u["n"]))
+        body = "\n\n".join(f"### [{u['doc']['name']} | {u['label']}]\n{u['text']}" for u in chosen)
+        content = [f"Repository {repo}. Excerpts below are labelled [file | page or rows].\n\n" + body]
+        imgs = [d for d in docs if d["type"] == "image"][:3]
+        for d in imgs:
+            try:
+                content += image_parts(d, "Image")
+            except Exception:
+                pass
+        instruction = (
+            "DEEP RESEARCH REQUEST. Ignore the usual brevity: be thorough and precise. Research this question across "
+            "ALL the documents provided: " + question + "\n\n"
+            "Structure the answer as: 1) Short answer (2-3 sentences). 2) Key findings: bullets with concrete numbers, "
+            "conditions (fuel, O2, pressure, flow, gravity) and results. Do not add source citations or brackets. 3) Disagreements or caveats between sources, if any. 4) What the documents do "
+            "not answer. Quote numbers exactly as written; never guess."
+        )
+        stamp = hashlib.md5("|".join(sorted(f"{d['id']}{d['mtime']}" for d in docs)).encode()).hexdigest()
+        key = f"research|{repo}|{stamp}|{lang}|{hashlib.md5(question.lower().encode()).hexdigest()}"
+        text, cached = answer(key, instruction, content, lang, bool(b.get("refresh")))
+        files = len({u["doc"]["id"] for u in chosen})
+        chars = sum(len(u["text"]) for u in chosen)
+        note = (f"Read {files} files, {len(chosen)} pages/sections, {chars:,} characters"
+                + (" (all the text in this PSI)" if full else f" of {total:,} (the most relevant parts)")
+                + (f" + {len(imgs)} images" if imgs else "") + ".")
+        return jsonify(ok=True, text=text, cached=cached, note=note)
     except Exception as e:
         return jsonify(ok=False, error=str(e)), 500
 
