@@ -720,10 +720,12 @@ def remote_load(n):
                 except Exception as e:
                     with slock:
                         st["skipped"] += 1
-                    left.append({"name": f["file_name"], "reason": "download failed (" + str(e)[:80] + ")"})
+                    left.append({"name": f["file_name"], "reason": "Download failed (" + str(e)[:80] + ")"})
                 with slock:
                     st["done"] += 1
         body = "\n\n".join(f"{k.title()}: {info[k]}" for k in ("title", "objective", "description") if info.get(k))
+        for x in left:
+            x["reason"] = x["reason"][:1].upper() + x["reason"][1:]
         if left:
             groups = {}
             for x in left:
@@ -1399,13 +1401,39 @@ def sources_of(resp):
 def rank():
     b = request.get_json(force=True)
     lens, env = b.get("lens"), b.get("env")
-    if lens not in LENSES or env not in ENVS:
+    env_text = " ".join(str(b.get("env_text") or "").split())[:200]
+    lens_text = " ".join(str(b.get("lens_text") or "").split())[:200]
+    extra = " ".join(str(b.get("extra") or "").split())[:400]
+    if env == "custom" and not env_text:
+        return jsonify(ok=False, error="Describe your environment, or pick one from the list"), 400
+    if lens == "custom" and not lens_text:
+        return jsonify(ok=False, error="Describe what to rank by, or pick a focus from the list"), 400
+    if (lens not in LENSES and lens != "custom") or (env not in ENVS and env != "custom"):
         return jsonify(ok=False, error="Choose an environment and a focus"), 400
+    atm = []
+    try:
+        if str(b.get("o2") or "").strip():
+            o2 = float(b["o2"])
+            if not 0 < o2 <= 100:
+                raise ValueError
+            atm.append(f"{o2:g}% oxygen")
+        if str(b.get("pressure") or "").strip():
+            pr = float(b["pressure"])
+            if not 0 < pr <= 50:
+                raise ValueError
+            atm.append(f"{pr:g} psi total pressure")
+    except ValueError:
+        return jsonify(ok=False, error="Oxygen must be 1-100 % and pressure 0.1-50 psi"), 400
+    env_desc = env_text if env == "custom" else ENVS[env]
+    lens_desc = lens_text if lens == "custom" else LENSES[lens]
+    if atm:
+        env_desc += " with a cabin atmosphere of " + " and ".join(atm)
     items = parse_index()
     if not items:
         return jsonify(ok=False, error="index.txt not found next to server.py"), 400
     lang = "Spanish" if b.get("lang") == "es" else "English"
-    key = f"rank|{lens}|{env}|{lang}|{int(INDEX.stat().st_mtime)}"
+    custom = hashlib.md5(f"{env_desc}|{lens_desc}|{extra}".encode()).hexdigest()[:12]
+    key = f"rank|{lens}|{env}|{custom}|{lang}|{int(INDEX.stat().st_mtime)}"
     try:
         if key in CACHE and not b.get("refresh"):
             raw = CACHE[key]
@@ -1413,7 +1441,9 @@ def rank():
             from google.genai import types
             prompt = (
                 "You are a spacecraft fire safety analyst. Below is the list of NASA PSI combustion investigations. "
-                f"Rank every one of them by {LENSES[lens]}, for {ENVS[env]}. Base each judgement on the titles, the group "
+                f"Rank every one of them by {lens_desc}, for {env_desc}. "
+                + (f"Also take into account these extra criteria from the user: {extra}. " if extra else "")
+                + "Base each judgement on the titles, the group "
                 "descriptions and well-established public knowledge of these NASA experiments; if you are not sure what "
                 "an investigation measured, say so and score it lower. Do not invent results or numbers. Fire safety of "
                 "rockets and propellants is out of scope. Return only a JSON array where each element is "
