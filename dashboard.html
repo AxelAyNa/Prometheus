@@ -2054,8 +2054,10 @@ $("#rList").addEventListener("click", e => {
 });
 chatRender();
 
-function buildAbout() {
+async function buildAbout() {
   if ($("#abTeam").dataset.done) return;
+  $("#abTeam").dataset.done = "1";
+  await LOGOS_P;
   const w = document.querySelector(".pword svg");
   if (w) $("#abWord").appendChild(w.cloneNode(true));
   const mark = document.querySelector("svg.mark"), las = document.querySelector("svg.lasalle");
@@ -2077,14 +2079,13 @@ function buildAbout() {
     const n = document.createElement("span"); n.textContent = t.name; box.appendChild(n);
     $("#abTeam").appendChild(box);
   });
-  $("#abTeam").dataset.done = "1";
 }
 $("#tab-about").addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) showTab(b.dataset.go); });
-const t0 = LS.get("tab", "start");
-showTab(TABS.includes(t0) ? t0 : "start");
-api("/api/logos").then(j => ["#logoL", "#logoR"].forEach((s, i) => {
+const LOGOS_P = api("/api/logos").then(j => ["#logoL", "#logoR"].forEach((s, i) => {
   if (j.logos[i]) { $(s).src = "/logos/" + encodeURIComponent(j.logos[i]); $(s).hidden = false; }
 })).catch(() => {});
+const t0 = LS.get("tab", "start");
+showTab(TABS.includes(t0) ? t0 : "start");
 loadIndex(true).catch(e => toast(e.message, true, 8000));
 setInterval(() => loadIndex(false).catch(() => {}), 8000);
 </script>
