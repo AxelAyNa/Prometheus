@@ -1,0 +1,21 @@
+<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" width="2100" height="720">
+	<style>
+		tspan { white-space:pre } 
+		.s0 { fill: #ffffff } 
+		.s1 { fill: none;stroke: #000000;stroke-miterlimit:10 } 
+		.t2 { font-size: 24px;fill: #ffffff;font-weight: 400;font-family: "AdventPro-Regular", "Advent Pro" } 
+		.s3 { fill: #000000 } 
+	</style>
+	<g id="Layer 1">
+		<path id="Forma 4" fill-rule="evenodd" class="s0" d="m544.67 282.33c0 0 14.1-20.88-38.63-71-52.72-50.11-120.06-108.58-227.08-111.19-107.02-2.61-155.04 28.71-196.28 67.86-41.25 39.15-66.82 103.36-62.13 139.91 4.7 36.54 24.02 38.11 24.02 38.11 0 0 34.45 16.18 51.68 21.4 17.23 5.22 40.19 29.75 56.38 80.91 16.18 51.16 42.8 143.04 58.47 162.36 15.66 19.31 38.63 59.51 107.01 83 68.39 23.49 127.9-45.94 136.25-78.31 8.36-32.36-28.19 78.83-129.98 56.91-101.8-21.93-139.39-259.45-114.33-292.86 25.06-33.41 25.06-33.41 25.06-33.41 0 0 49.07-65.26 167.57-78.31 118.5-13.05 135.76 9.15 135.55 18.19-0.21 9.05 6.44-3.57 6.44-3.57z"/>
+		<path id="Forma 1" fill-rule="evenodd" class="s1" d="m284.15 375.7"/>
+		<path id="Forma 2" fill-rule="evenodd" class="s0" d="m213.03 403.17c0 0 22.02 6.42 145.39-6.42 123.38-12.84 120.17-27.06 120.17-27.06 0 0 6.42-10.09-122.46 5.05-128.88 15.13-150.89 17.89-143.1 28.43z"/>
+		<path id="Forma 3" fill-rule="evenodd" class="s1" d="m400.58 384.77"/>
+		<text id="ORION" style="transform: matrix(18.546,0,0,18.546,246.28,637.723)">
+			<tspan x="0" y="0" class="t2">O</tspan><tspan  y="0" class="t2">R</tspan><tspan  y="0" class="t2">I</tspan><tspan  y="0" class="t2">O</tspan><tspan  y="0" class="t2">N</tspan><tspan  y="0" class="t2">
+</tspan>
+		</text>
+		<path id="Forma 6" fill-rule="evenodd" class="s0" d="m160.33 410.26c0 0-320.59-42.2 91.95 182.65 412.55 224.86 394.28 62.99 245.64-45.98-148.64-108.96 149.9 97.63 57.95 119.04-91.96 21.42-512.06-234.3-426.41-219.81 85.66 14.49 59.21-9.45 59.21-9.45z"/>
+		<path id="Forma 7" fill-rule="evenodd" class="s3" d="m719.98 167.83"/>
+	</g>
+</svg>
