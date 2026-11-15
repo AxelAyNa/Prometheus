@@ -164,6 +164,72 @@ body{transition:padding-left .25s ease}
 .gcard .rel{gap:6px}
 .tag.ok{color:var(--ok)}
 .chartbox{position:relative;height:380px;margin-top:12px}
+.mlbox{margin-top:22px;padding-top:18px;border-top:1px solid var(--line)}
+.mlhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mlhead h3{margin:0;font-size:15px}
+.disc{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid rgba(245,165,36,.35);background:rgba(245,165,36,.08);border-radius:10px;font-size:12.5px;line-height:1.5;color:#ecdcbc}
+.disc .ico{flex:none;line-height:1.4}
+.mlk{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+.mlk>div{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.mlk span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.mlk b{display:block;font-size:16px;margin-top:4px;overflow-wrap:anywhere}
+.mlk small{font-size:11px;color:var(--muted);font-weight:400}
+.verdict{margin-top:12px;font-size:13px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.mlgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:14px;margin-top:14px}
+.mlcard{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px;min-width:0}
+.mlcard h4{margin:0 0 10px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.imp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) 48px;gap:8px;align-items:center;font-size:12px;margin:7px 0}
+.imp .nm{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.imp .bar{display:block;width:auto;height:8px;background:#1f2633;border-radius:999px;overflow:hidden}
+.imp .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--fire),#ffb347);border-radius:999px}
+.imp .v{text-align:right;color:var(--muted);font-family:var(--mono);font-size:11.5px}
+.mlt tr.best td{color:var(--text)}
+.mlt td,.mlt th{background:transparent}
+.cm td,.cm th{text-align:center;max-width:110px;overflow:hidden;text-overflow:ellipsis;background:transparent}
+.cm td.diag{background:rgba(46,204,113,.16);color:#bdf5d3}
+.cm td.miss{background:rgba(255,77,79,.10);color:#ffb3b4}
+.mlchart{position:relative;height:290px}
+.warn{margin-top:10px;padding:8px 12px;border-radius:8px;background:rgba(255,77,79,.08);border:1px solid rgba(255,77,79,.3);color:#ffb3b4;font-size:12.5px;line-height:1.5}
+.mltry{margin-top:14px}
+.dl{margin:4px 0 10px}
+.dlbar{height:6px;background:#1f2633;border-radius:999px;overflow:hidden;margin-top:6px;max-width:520px}
+.dlbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#7cc4ff);border-radius:999px;transition:width .4s}
+.dlnow{font-size:11.5px;color:var(--muted);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.freeall{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 14px;margin:0 0 4px;border-bottom:1px solid var(--line)}
+.freeall .hint{margin:0}
+.gcard .rel{display:flex;gap:6px}
+details.left{margin:4px 0 10px;font-size:12px}
+details.left summary{cursor:pointer;color:var(--muted);user-select:none;list-style:none;display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:var(--panel2)}
+details.left summary::-webkit-details-marker{display:none}
+details.left summary::before{content:"\203A";display:inline-block;font-size:15px;line-height:1;transition:transform .15s}
+details.left[open] summary::before{transform:rotate(90deg)}
+details.left summary:hover{color:var(--text);border-color:var(--accent)}
+details.left .hd,details.left[open] .sh{display:none}
+details.left[open] .hd{display:inline}
+details.left ul{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:8px}
+details.left li{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+details.left li b{font-weight:600}
+details.left .ln{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:5px;color:var(--muted);font-size:11.5px}
+details.left .ln span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tryg{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px 12px;margin-bottom:4px}
+.tryg .lab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-size:12px}
+.tryg .lab input,.tryg .lab select{width:100%;max-width:none;box-sizing:border-box;padding:6px 9px;font-size:12.5px}
+.tryg .lab small{font-size:10.5px;color:var(--muted)}
+.pres{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.pbig span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.pbig b{display:block;font-size:26px;margin:2px 0;color:#fff}
+.pbig small{font-size:12px;color:var(--muted)}
+.psup{margin-top:8px;max-width:520px}
+.eff{display:flex;justify-content:space-between;gap:12px;padding:6px 10px;border-radius:8px;background:#141a24;margin-top:5px;font-size:12.5px;border-left:3px solid var(--line)}
+.eff.up{border-left-color:var(--ok)}
+.eff.down{border-left-color:var(--bad)}
+.eff .nm{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eff .nm small{color:var(--muted)}
+.eff .w{flex:none;color:var(--muted)}
+.eff.up .w{color:#8ee6b0}
+.eff.down .w{color:#ffa3a4}
+.mlnote{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.5}
+@media (max-width:900px){.mlk{grid-template-columns:repeat(2,minmax(0,1fr))}.mlgrid{grid-template-columns:1fr}}
 .imgp{max-width:100%;display:block;border-top:1px solid var(--line)}
 .cmp{position:relative;height:420px;background:#0c1016;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-top:12px}
 .cmp img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
@@ -313,6 +379,7 @@ input[type=range]{width:100%;margin-top:10px;accent-color:var(--accent);padding:
         <select id="type">
           <option value="all">All file types</option>
           <option value="pdf">PDF reports</option>
+          <option value="docx">Word documents</option>
           <option value="csv">CSV tables</option>
           <option value="xlsx">Excel tables</option>
           <option value="text">Text / JSON</option>
@@ -397,7 +464,7 @@ input[type=range]{width:100%;margin-top:10px;accent-color:var(--accent);padding:
       <div class="row" style="margin-top:0">
         <input id="aPsi" list="aList" placeholder="PSI number, e.g. 159"><datalist id="aList"></datalist>
         <button class="btn primary" id="aLoad">Load from NASA</button>
-        <label class="btn">⬆ Upload my files<input type="file" id="aFiles" multiple hidden accept=".csv,.tsv,.xlsx,.xlsm,.pdf,.txt,.md,.json,.png,.jpg,.jpeg,.webp,.gif"></label>
+        <label class="btn">⬆ Upload my files<input type="file" id="aFiles" multiple hidden accept=".csv,.tsv,.xlsx,.xlsm,.xls,.pdf,.docx,.txt,.md,.json,.png,.jpg,.jpeg,.webp,.gif"></label>
       </div>
       <p class="hint" style="margin:10px 0 0">Load reads the reports, tables and images straight from the NASA PSI repository, with no manual download. Upload is for files you already have; type the PSI number first.</p>
       <div id="aStatus" style="margin-top:8px"></div>
@@ -498,8 +565,19 @@ function mark(text, ts) {
   const re = new RegExp("(" + ts.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|") + ")", "gi");
   return text.split(re).map((p, i) => i % 2 ? "<mark>" + esc(p) + "</mark>" : esc(p)).join("");
 }
+function unlatex(m) {
+  const sup = {"0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹", "-": "⁻"};
+  const sub = {"0": "₀", "1": "₁", "2": "₂", "3": "₃", "4": "₄", "5": "₅", "6": "₆", "7": "₇", "8": "₈", "9": "₉"};
+  const sym = {pm: "±", times: "×", approx: "≈", le: "≤", leq: "≤", ge: "≥", geq: "≥", ne: "≠", neq: "≠", cdot: "·", degree: "°", circ: "°", rightarrow: "→", to: "→", infty: "∞", Delta: "Δ", delta: "δ", mu: "μ", sigma: "σ", alpha: "α", beta: "β", lambda: "λ", phi: "φ", rho: "ρ", tau: "τ", sim: "~", percent: "%"};
+  return m.replace(/\\[,;:! ]/g, " ").replace(/\\(?:text|mathrm|mathbf|operatorname)\{([^}]*)\}/g, "$1")
+    .replace(/\^\{?(-?\d+)\}?/g, (_, d) => [...d].map(c => sup[c] || c).join(""))
+    .replace(/_\{?([A-Za-z0-9]+)\}?/g, (_, d) => [...d].map(c => sub[c] || c).join(""))
+    .replace(/\\frac\{([^}]*)\}\{([^}]*)\}/g, "($1)/($2)")
+    .replace(/\\([a-zA-Z]+)/g, (a, w) => sym[w] ?? w)
+    .replace(/\\%/g, "%").replace(/[{}]/g, "").replace(/\s+/g, " ").trim();
+}
 function mdInline(s) {
-  let t = esc(s);
+  let t = esc(String(s).replace(/\$\$([^$]+)\$\$|\$([^$\n]{1,120}?)\$/g, (all, a, b) => { const m = a || b; return /[\\^_{}]/.test(m) || /^[A-Za-z]$/.test(m.trim()) ? unlatex(m) : all; }));
   const codes = [];
   t = t.replace(/`([^`]+)`/g, (_, c) => { codes.push(c); return "\u0000" + (codes.length - 1) + "\u0000"; });
   t = t.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
@@ -875,7 +953,14 @@ class ChartPanel {
     <div class="hint" data-r="info" style="margin-top:8px"></div>
     <div class="chartbox"><canvas data-r="canvas"></canvas></div>
     <div class="scroll" data-r="stats"></div>
-    <div class="out" data-r="out" style="display:none"></div>`;
+    <div class="out" data-r="out" style="display:none"></div>
+    <div class="mlbox">
+      <div class="mlhead"><h3>Machine learning model</h3></div>
+      <div class="disc"><span class="ico">⚠️</span><div><b>Trained on the spot.</b> This model is trained right now, every time you press <i>Train model</i>, using only the data it receives from the table selected above. It is not a pre-trained model, so treat its results as exploratory, not as validated predictions.</div></div>
+      <div class="row"><label class="lab">Predict<select data-r="mlT"></select></label><button class="btn primary" data-r="mlGo">Train model</button><button class="btn" data-r="mlAi" disabled>✦ AI overview</button></div>
+      <div data-r="mlRes"></div>
+      <div class="out" data-r="mlOut" style="display:none"></div>
+    </div>`;
     this.el = {};
     root.querySelectorAll("[data-r]").forEach(e => { this.el[e.dataset.r] = e; });
     this.sheetLab = root.querySelector(".sheetlab");
@@ -886,6 +971,9 @@ class ChartPanel {
     this.el.logx.onchange = () => this.plot();
     this.el.logy.onchange = () => this.plot();
     this.el.ai.onclick = () => this.info && runAi("chart", this.el.ai, this.el.out, {payload: JSON.stringify(this.info)});
+    this.el.mlGo.onclick = () => this.train();
+    this.el.mlAi.onclick = () => this.ml && runAi("ml", this.el.mlAi, this.el.mlOut, {payload: JSON.stringify(this.mlSummary())});
+    this.mlReset();
     this.el.png.onclick = () => {
       if (!this.chart) return;
       const a = document.createElement("a");
@@ -927,7 +1015,7 @@ class ChartPanel {
     catch (e) { toast(e.message, true); return; }
     this.cols = j.columns;
     const num = j.columns.filter(c => c.numeric).map(c => c.name);
-    const opts = l => l.map(n => `<option>${esc(n)}</option>`).join("");
+    const opts = l => l.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("");
     this.el.x.innerHTML = opts(num);
     this.el.y.innerHTML = opts(num);
     if (num.length > 1) this.el.y.selectedIndex = 1;
@@ -935,6 +1023,10 @@ class ChartPanel {
     this.el.g.innerHTML = '<option value="">No grouping</option>' + opts(cats.map(c => c.name));
     const pref = cats.find(c => !c.numeric && /^fuel/i.test(c.name)) || cats.find(c => !c.numeric && /^(flame type|material)/i.test(c.name));
     if (pref) this.el.g.value = pref.name;
+    const tg = j.columns.filter(c => (c.numeric && c.unique > 12) || (c.unique >= 2 && c.unique <= 12)).map(c => c.name);
+    this.el.mlT.innerHTML = opts(tg);
+    if (tg.includes(this.el.y.value)) this.el.mlT.value = this.el.y.value;
+    this.mlReset();
     this.el.info.textContent = num.length ? "" : "This table has no numeric columns.";
     if (num.length > 1) await this.plot();
   }
@@ -965,13 +1057,142 @@ class ChartPanel {
     this.el.ai.disabled = false;
     this.el.png.disabled = false;
   }
+
+  mlReset() {
+    this.ml = null;
+    if (this.mlChart) { this.mlChart.destroy(); this.mlChart = null; }
+    this.el.mlRes.innerHTML = '<div class="hint" style="margin-top:10px">Pick the column to predict and press <b>Train model</b>. All the other usable columns of the table are used as inputs automatically.</div>';
+    this.el.mlAi.disabled = true;
+    this.el.mlOut.style.display = "none";
+  }
+
+  async train() {
+    const id = this.el.file.value, target = this.el.mlT.value;
+    if (!id || !target) { toast("Pick a table and a column to predict", true); return; }
+    const b = this.el.mlGo;
+    b.disabled = true; b.textContent = "Training…";
+    this.el.mlOut.style.display = "none";
+    try {
+      this.ml = await api("/api/ml", {json: {id, sheet: this.sheet(), target}});
+      this.mlRender();
+      this.el.mlAi.disabled = false;
+      if ($("#auto").checked) this.el.mlAi.click();
+    } catch (e) {
+      this.ml = null;
+      if (this.mlChart) { this.mlChart.destroy(); this.mlChart = null; }
+      this.el.mlRes.innerHTML = `<div class="out err">${esc(e.message)}</div>`;
+      this.el.mlAi.disabled = true;
+    } finally { b.disabled = false; b.textContent = "Train model"; }
+  }
+
+  mlRender() {
+    const j = this.ml, cls = j.task === "classification", best = j.best;
+    const f = v => Number(Number(v).toPrecision(3)), pct = v => (v * 100).toFixed(1) + "%";
+    let verdict, tone;
+    if (cls) {
+      const gain = best.accuracy - j.baseline;
+      [verdict, tone] = gain >= 0.25 ? ["Strong: much better than guessing the most common class", "ok"] : gain >= 0.1 ? ["Moderate: clearly better than guessing", "ok"] : gain > 0.02 ? ["Weak: only slightly better than guessing", "f"] : ["Not predictive: no better than always guessing the most common class", "f"];
+    } else {
+      const r = best.r2;
+      [verdict, tone] = r >= 0.8 ? ["Strong: the inputs explain most of the variation", "ok"] : r >= 0.5 ? ["Moderate: the inputs explain part of the variation", "ok"] : r >= 0.2 ? ["Weak: the inputs explain little of the variation", "f"] : ["Not predictive: about as good as always predicting the average", "f"];
+    }
+    const tiles = cls
+      ? [["Best model", esc(best.name)], ["Accuracy", pct(best.accuracy)], ["Baseline", pct(j.baseline) + " <small>always the most common class</small>"], ["Data used", `${j.rows} rows <small>· ${j.features.length} inputs</small>`]]
+      : [["Best model", esc(best.name)], ["R² score", f(best.r2) + " <small>0 to 1, higher is better</small>"], ["Mean abs. error", f(best.mae) + ` <small>vs ${f(j.baseline_mae)} baseline</small>`], ["Data used", `${j.rows} rows <small>· ${j.features.length} inputs</small>`]];
+    const mrow = m => cls ? `<td>${pct(m.accuracy)}</td>` : `<td>${f(m.r2)}</td><td>${f(m.mae)}</td><td>${f(m.rmse)}</td>`;
+    const models = `<table class="mlt"><tr><th>Model</th>${cls ? "<th>Accuracy</th>" : "<th>R²</th><th>MAE</th><th>RMSE</th>"}</tr>${j.models.map(m => `<tr class="${m.key === best.key ? "best" : ""}"><td>${esc(m.name)}${m.key === best.key ? ' <span class="tag ok">best</span>' : ""}</td>${mrow(m)}</tr>`).join("")}</table>`;
+    const top = j.importance[0];
+    const warn = top && top.share >= 0.8 ? `<div class="warn">“${esc(top.feature)}” explains ${pct(top.share)} of the model. It may be almost a copy of “${esc(j.target)}” (for example a before/after measurement), so the score can look better than it really is.</div>` : "";
+    const imp = j.importance.length ? j.importance.map(r => `<div class="imp"><span class="nm" title="${esc(r.feature)}">${esc(r.feature)}</span><span class="bar"><i style="width:${Math.max(2, r.share * 100).toFixed(1)}%"></i></span><span class="v">${pct(r.share)}</span></div>`).join("") : '<div class="hint">No input changed the predictions noticeably.</div>';
+    const right = cls
+      ? `<h4>Confusion matrix · actual (rows) vs predicted (columns)</h4><div class="scroll" style="max-height:280px;border:0"><table class="cm"><tr><th></th>${j.classes.map(c => `<th title="${esc(c)}">${esc(c)}</th>`).join("")}</tr>${j.confusion.map((r, i) => `<tr><th title="${esc(j.classes[i])}">${esc(j.classes[i])}</th>${r.map((v, k) => `<td class="${i === k ? "diag" : v ? "miss" : ""}">${v}</td>`).join("")}</tr>`).join("")}</table></div>`
+      : `<h4>Predicted vs actual (each dot is a row the model had not seen)</h4><div class="mlchart"><canvas data-ml="c"></canvas></div>`;
+    this.el.mlRes.innerHTML = `<div class="mlk">${tiles.map(([k, v]) => `<div><span>${k}</span><b>${v}</b></div>`).join("")}</div>
+      <div class="verdict"><span class="tag ${tone}">${verdict.split(":")[0]}</span>${esc(verdict.split(":").slice(1).join(":").trim())}</div>${warn}
+      <div class="mlgrid"><div class="mlcard"><h4>What drives the prediction</h4>${imp}<div style="margin-top:12px">${models}</div></div><div class="mlcard">${right}</div></div>
+      <div class="mlcard mltry"><h4>Predict with your own values</h4>
+        <p class="hint" style="margin:0 0 10px">Change any input and press <b>Predict</b>. Fields start at a typical value from the table; the range under each one is what the model saw.</p>
+        <div class="tryg">${(j.inputs || []).map((sp, i) => sp.type === "number"
+          ? `<label class="lab"><span title="${esc(sp.name)}">${esc(sp.name)}</span><input type="number" step="any" data-f="${i}" value="${+Number(sp.median).toPrecision(6)}"><small>range ${f(sp.min)} – ${f(sp.max)}</small></label>`
+          : `<label class="lab"><span title="${esc(sp.name)}">${esc(sp.name)}</span><select data-f="${i}">${sp.options.map(o => `<option value="${esc(o)}" ${o === sp.mode ? "selected" : ""}>${esc(o || "(empty)")}</option>`).join("")}</select><small>${sp.options.length} options</small></label>`).join("")}</div>
+        <div class="row"><button class="btn primary" data-ml="go">Predict</button><button class="btn" data-ml="reset">Reset to typical values</button><button class="btn" data-ml="ai" disabled>✦ Explain with AI</button></div>
+        <div data-ml="res"></div>
+        <div class="out" data-ml="out" style="display:none"></div>
+      </div>
+      <div class="mlnote">Trained at ${esc(j.trained_at)} in ${j.seconds}s with 5-fold cross-validation on ${esc(j.file)}. Inputs: ${esc(j.features.join(", "))}.${j.dropped.length ? " Not used: " + esc(j.dropped.join(", ")) + "." : ""}</div>`;
+    const q = s => this.el.mlRes.querySelector(`[data-ml="${s}"]`);
+    q("go").onclick = () => this.predictOwn();
+    q("reset").onclick = () => { this.el.mlRes.querySelectorAll("[data-f]").forEach(el => { const sp = j.inputs[el.dataset.f]; el.value = sp.type === "number" ? +Number(sp.median).toPrecision(6) : sp.mode; }); q("res").innerHTML = ""; q("out").style.display = "none"; q("ai").disabled = true; };
+    q("ai").onclick = () => this.pred && runAi("mlpred", q("ai"), q("out"), {payload: JSON.stringify({model: this.mlSummary(), user_prediction: this.pred})});
+    this.el.mlRes.querySelectorAll(".tryg input").forEach(el => el.addEventListener("keydown", e => { if (e.key === "Enter") this.predictOwn(); }));
+    if (this.mlChart) { this.mlChart.destroy(); this.mlChart = null; }
+    if (!cls) {
+      const pts = j.points.map(p => ({x: p[0], y: p[1]}));
+      const all = j.points.flat(), lo = Math.min(...all), hi = Math.max(...all);
+      const ax = t => ({title: {display: true, text: t, color: "#8a93a3"}, ticks: {color: "#8a93a3"}, grid: {color: "#232a36"}});
+      this.mlChart = new Chart(this.el.mlRes.querySelector("[data-ml=c]"), {
+        type: "scatter",
+        data: {datasets: [
+          {label: "Rows", data: pts, backgroundColor: "#ff7a3d99", borderColor: "#ff7a3d", pointRadius: 3},
+          {label: "Perfect prediction", data: [{x: lo, y: lo}, {x: hi, y: hi}], showLine: true, pointRadius: 0, borderColor: "#3aa0ff", borderDash: [6, 4], borderWidth: 1.5}
+        ]},
+        options: {responsive: true, maintainAspectRatio: false, scales: {x: ax("Actual " + j.target), y: ax("Predicted " + j.target)}, plugins: {legend: {labels: {color: "#e6e9ef"}}}}
+      });
+    }
+  }
+
+  async predictOwn() {
+    const j = this.ml, q = s => this.el.mlRes.querySelector(`[data-ml="${s}"]`);
+    const values = {};
+    this.el.mlRes.querySelectorAll("[data-f]").forEach(el => { values[j.inputs[el.dataset.f].name] = el.value; });
+    const b = q("go");
+    b.disabled = true;
+    q("out").style.display = "none";
+    try {
+      const r = await api("/api/ml/predict", {json: {token: j.token, values}});
+      this.pred = r;
+      const f = v => typeof v === "number" ? Number(v.toPrecision(4)) : esc(v || "(empty)");
+      const pct = v => (v * 100).toFixed(0) + "%";
+      let head;
+      if (r.task === "classification") {
+        head = `<div class="pbig"><span>Predicted ${esc(r.target)}</span><b>${esc(r.result.label || "(empty)")}</b><small>model accuracy ${pct(j.best.accuracy)} on unseen rows</small></div>
+          <div class="psup">${r.result.support.map(s => `<div class="imp"><span class="nm">${esc(s.label || "(empty)")}</span><span class="bar"><i style="width:${Math.max(2, s.share * 100).toFixed(0)}%"></i></span><span class="v">${pct(s.share)}</span></div>`).join("")}</div>`;
+      } else {
+        head = `<div class="pbig"><span>Predicted ${esc(r.target)}</span><b>${f(r.result.value)}</b><small>± ${f(r.result.typical_error)} typical error · a typical case gives ${f(r.result.typical_value)}</small></div>`;
+      }
+      const cls = r.task === "classification";
+      const eff = r.effects.length
+        ? `<h4 style="margin-top:14px">Why: your values vs a typical case</h4>` + r.effects.map(e => {
+            const up = e.effect > 0, tiny = Math.abs(e.effect) < 1e-12;
+            const word = cls ? (tiny ? "no change" : up ? "supports this result" : "argues against it") : (tiny ? "no change" : (up ? "▲ raises it by " : "▼ lowers it by ") + f(Math.abs(e.effect)));
+            return `<div class="eff ${tiny ? "" : up ? "up" : "down"}"><span class="nm">${esc(e.feature)} = <b>${f(e.value)}</b> <small>(typical ${f(e.typical)})</small></span><span class="w">${word}</span></div>`;
+          }).join("")
+        : '<div class="hint" style="margin-top:10px">All inputs are at their typical values, so this is the model’s prediction for a typical case.</div>';
+      const out = r.outside.length ? `<div class="warn">⚠️ ${r.outside.map(o => `“${esc(o.feature)}” = ${f(o.value)} is outside the data the model learned from (${f(o.min)} – ${f(o.max)})`).join("; ")}. The prediction is an extrapolation and may be unreliable.</div>` : "";
+      q("res").innerHTML = `<div class="pres">${head}${out}${eff}</div>`;
+      q("ai").disabled = false;
+    } catch (e) {
+      this.pred = null;
+      q("res").innerHTML = `<div class="out err">${esc(e.message)}</div>`;
+      q("ai").disabled = true;
+    } finally { b.disabled = false; }
+  }
+
+  mlSummary() {
+    const j = this.ml;
+    return {file: j.file, sheet: j.sheet, target: j.target, task: j.task, rows_used: j.rows, inputs: j.features, not_used: j.dropped,
+      validation: "5-fold cross-validation, trained on the fly", models: j.models, best_model: j.best.name,
+      baseline: j.task === "classification" ? {majority_class_accuracy: j.baseline} : {mae_of_predicting_the_mean: j.baseline_mae},
+      target_range: j.target_range, target_mean: j.target_mean,
+      importance_share: j.importance, classes: j.classes, confusion_matrix: j.confusion};
+  }
 }
 
 const CP = new ChartPanel($("#cPanel"));
 let WDATA = null;
 let WF = {q: "", k: "", open: new Set(), sel: ""};
-const FKIND = {pdf: "Documents", csv: "Tables", xlsx: "Tables", image: "Images"};
-const FICON = {pdf: "📄", csv: "📊", xlsx: "📊", image: "🖼️"};
+const FKIND = {pdf: "Documents", docx: "Documents", csv: "Tables", xlsx: "Tables", image: "Images"};
+const FICON = {pdf: "📄", docx: "📝", csv: "📊", xlsx: "📊", image: "🖼️"};
 const fKind = f => FKIND[f.type] || "Other";
 function fParts(f) {
   const base = f.name.replace(/\.[^.]+$/, "");
@@ -1041,9 +1262,11 @@ function renderWork() {
   if (S.curW && S.repos.some(r => r.name === S.curW)) { renderRepoView(S.curW); return; }
   S.curW = "";
   $("#wTitle").textContent = "Repositories";
-  $("#wBody").innerHTML = S.repos.length ? '<div class="list">' + S.repos.map(r => `<div class="res gcard">
-    <div class="t"><b>${esc(r.name)}</b><span class="tag">${r.files} files</span><span class="tag ${r.remote ? "ok" : ""}">${r.remote ? "from NASA" : "uploaded"}</span>
-    <span class="rel"><button class="btn sm primary" data-open="${esc(r.name)}">Open</button></span></div>
+  const nasa = S.repos.filter(r => r.remote);
+  const size = r => !r.chars ? "" : r.chars < 1048576 ? ` · ${Math.max(1, Math.round(r.chars / 1024))} KB of text` : ` · ${(r.chars / 1048576).toFixed(1)} MB of text`;
+  $("#wBody").innerHTML = S.repos.length ? (nasa.length > 1 ? `<div class="freeall"><span class="hint">${nasa.length} PSIs loaded from NASA. Remove the ones you no longer use to free memory; you can load them again anytime.</span><button class="btn sm" data-rmall>Remove all from NASA</button></div>` : "") + '<div class="list">' + S.repos.map(r => `<div class="res gcard">
+    <div class="t"><b>${esc(r.name)}</b><span class="tag">${r.files} files${size(r)}</span><span class="tag ${r.remote ? "ok" : ""}">${r.remote ? "from NASA" : "your data folder"}</span>
+    <span class="rel">${r.remote ? `<button class="btn sm" data-rm="${esc(r.name)}" title="Remove from the dashboard (you can load it again)">Remove</button>` : ""}<button class="btn sm primary" data-open="${esc(r.name)}">Open</button></span></div>
     <p class="snip">${esc(r.desc || r.tables + " tables · " + r.pdfs + " PDF")}</p></div>`).join("") + "</div>"
     : '<div class="card-b hint">No repositories yet. Go to Start to load a PSI from NASA or upload your files.</div>';
 }
@@ -1111,9 +1334,25 @@ async function renderRepoView(name) {
   if ($("#auto").checked) $("#wGen").click();
 }
 
+async function removeRepos(names) {
+  let n = 0;
+  for (const name of names) {
+    try { await api("/api/remote/remove", {json: {repo: name}}); n++; } catch (e) { toast(e.message, true); }
+  }
+  if (names.includes(S.curW)) { S.curW = ""; LS.set("curW", ""); }
+  await loadIndex(true);
+  renderWork();
+  if (n) toast(n === 1 ? `${names[0]} removed. Load it again from Start whenever you need it.` : `${n} PSIs removed from the dashboard.`);
+}
 $("#wBody").addEventListener("click", e => {
   const b = e.target.closest("[data-open]");
-  if (b) openWork(b.dataset.open);
+  if (b) { openWork(b.dataset.open); return; }
+  const rm = e.target.closest("[data-rm]");
+  if (rm) { if (confirm("Remove " + rm.dataset.rm + " from the dashboard? You can load it again from NASA.")) removeRepos([rm.dataset.rm]); return; }
+  if (e.target.closest("[data-rmall]")) {
+    const names = S.repos.filter(r => r.remote).map(r => r.name);
+    if (confirm(`Remove all ${names.length} PSIs loaded from NASA? Your own data folder is not touched.`)) removeRepos(names);
+  }
 });
 
 function showTab(t) {
@@ -1197,15 +1436,54 @@ async function loadPsi(n) {
   } catch (e) { toast(e.message, true); }
 }
 
+function leftCount(left) {
+  return (left || []).reduce((n, x) => n + (/^\d+ files$/.test(x.name) ? parseInt(x.name) : 1), 0);
+}
+const OPENLEFT = new Set();
+function leftHtml(left, n) {
+  if (!left || !left.length) return "";
+  const g = {};
+  left.forEach(x => (g[x.reason] = g[x.reason] || []).push(x.name));
+  return `<details class="left" data-n="${n}" ${OPENLEFT.has(String(n)) ? "open" : ""}><summary><span class="sh">Show</span><span class="hd">Hide</span> why ${leftCount(left)} ${leftCount(left) === 1 ? "file was" : "files were"} not loaded</summary><ul>${Object.entries(g).map(([r, ns]) =>
+    `<li><b>${esc(r)}</b> <span class="tag">${/^\d+ files$/.test(ns[0]) && ns.length === 1 ? parseInt(ns[0]) : ns.length}</span><div class="ln">${ns.slice(0, 25).map(n => `<span title="${esc(n)}">${esc(n.replace(/^PSI-?\d+_/, ""))}</span>`).join("")}${ns.length > 25 ? `<span>… and ${ns.length - 25} more</span>` : ""}</div></li>`).join("")}</ul></details>`;
+}
+$("#aStatus").addEventListener("toggle", e => {
+  const d = e.target;
+  if (d.matches && d.matches("details.left")) d.open ? OPENLEFT.add(d.dataset.n) : OPENLEFT.delete(d.dataset.n);
+}, true);
+let LASTPROG = "";
+async function refreshOpenRepo() {
+  if ($("#tab-work").hidden || !S.curW || !WDATA || WDATA.name !== S.curW) return;
+  let j;
+  try { j = await api("/api/repo?name=" + encodeURIComponent(S.curW)); } catch (e) { return; }
+  if (!WDATA || WDATA.name !== j.name || j.files.length === WDATA.files.length) return;
+  WDATA.files = j.files;
+  const q = $("#wQ");
+  if (q) q.placeholder = `Search ${j.files.length} files…`;
+  if (!WF.sel) {
+    const first = j.files.find(f => f.type === "pdf") || j.files.find(f => f.type === "image");
+    if (first) { WF.open.add(fParts(first).cat); WF.sel = first.id; wFiles(); wShow(first.id); return; }
+  }
+  wFiles();
+}
 function pollRemote(quiet) {
   clearTimeout(POLL);
   const tick = async () => {
     let items;
     try { items = (await api("/api/remote/status")).items; } catch (e) { return; }
+    const mb = b => (b / 1048576).toFixed(b < 10485760 ? 1 : 0);
     $("#aStatus").innerHTML = items.map(i => i.state === "loading"
-      ? `<div class="hint">PSI-${i.n}: loading ${i.done}/${i.total || "…"} files…</div>`
+      ? `<div class="dl"><div class="hint">PSI-${i.n}: ${i.total ? `downloading ${i.done}/${i.total} files · ${mb(i.bytes_done || 0)} of ${mb(i.bytes_total || 0)} MB` : "reading the file list from NASA…"}</div>
+          <div class="dlbar"><i style="width:${i.bytes_total ? Math.min(100, 100 * (i.bytes_done || 0) / i.bytes_total).toFixed(1) : 2}%"></i></div>
+          ${(i.current || []).length ? `<div class="dlnow">Now: ${i.current.map(c => esc(c.replace(/^PSI-?\d+_/, ""))).join(" · ")}</div>` : ""}
+          ${i.done ? `<div class="dlnow"><a href="#" data-open="${esc(i.folder)}">Open in Workspace</a> · files appear there as they finish</div>` : ""}</div>`
       : i.state === "error" ? `<div class="out err">PSI-${i.n}: ${esc(i.error)}</div>`
-      : `<div class="hint">PSI-${i.n}: ready, ${i.done - i.skipped} files${i.skipped ? " (" + i.skipped + " skipped)" : ""}. <a href="#" data-open="${esc(i.folder)}">Open in Workspace</a></div>`).join("");
+      : `<div class="hint">PSI-${i.n}: ready, ${i.done - i.skipped} files loaded${(i.left || []).length ? `, ${leftCount(i.left)} not loaded` : ""}. <a href="#" data-open="${esc(i.folder)}">Open in Workspace</a></div>${leftHtml(i.left, i.n)}`).join("");
+    const prog = items.filter(i => i.state === "loading").map(i => i.n + ":" + i.done).join(",");
+    if (prog !== LASTPROG) {
+      if (LASTPROG) { await loadIndex(false); await refreshOpenRepo(); }
+      LASTPROG = prog;
+    }
     if (items.some(i => i.state === "loading")) POLL = setTimeout(tick, 1500);
     else if (!quiet) { await loadIndex(true); sRender(); }
   };

@@ -6,10 +6,12 @@ import os
 import pickle
 import re
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
 import webbrowser
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, send_file, send_from_directory
@@ -24,8 +26,8 @@ DATA.mkdir(exist_ok=True)
 CACHE_FILE = BASE / "ai_cache.json"
 MODEL = os.getenv("GeminiModel", "gemini-3.5-flash")
 EXT = {
-    ".csv": "csv", ".tsv": "csv", ".xlsx": "xlsx", ".xlsm": "xlsx",
-    ".pdf": "pdf", ".txt": "text", ".md": "text", ".json": "text",
+    ".csv": "csv", ".tsv": "csv", ".xlsx": "xlsx", ".xlsm": "xlsx", ".xls": "xlsx",
+    ".pdf": "pdf", ".docx": "docx", ".txt": "text", ".md": "text", ".json": "text",
     ".png": "image", ".jpg": "image", ".jpeg": "image", ".webp": "image", ".gif": "image",
 }
 MIME = {"png": "image/png", "jpg": "image/jpeg", "jpeg": "image/jpeg", "webp": "image/webp", "gif": "image/gif"}
@@ -47,7 +49,38 @@ P_RE = re.compile(r"(atm|psi|kpa|pressure)", re.I)
 SYSTEM = (
     "You are a spacecraft fire safety analyst. Use only the content provided below, taken from "
     "NASA Physical Sciences Informatics (PSI) files. Do not invent values, results or facts; "
-    "if something is not in the content, say so. Answer in {lang}. Be concise."
+    "if something is not in the content, say so. Answer in {lang}. Be concise. "
+    "Never use LaTeX or $ math notation: write R², ±, ≈, ×, °C as plain text characters."
+)
+ML_EXPLAIN = (
+    "Below are the results of a machine learning model trained just now, on the fly, only with the rows of one NASA PSI "
+    "table and evaluated with 5-fold cross-validation (scores come from rows the model had not seen). Explain it to a "
+    "non-expert, with simple words and concrete numbers, using exactly this Markdown structure:\n"
+    "**In one sentence:** how useful the model is.\n"
+    "Then one short block per metric. For regression: "
+    "**R² = <value> — <Strong if ≥0.8, Moderate if ≥0.5, Weak if ≥0.2, otherwise Not predictive>**: say what share of the "
+    "variation of the target the inputs explain (0.67 → about 67%), and that 1 would be perfect and 0 the same as always "
+    "guessing the average; say what that means in practice (good for trends vs exact numbers). "
+    "**MAE = <value> — typical error**: the average miss, in the units of the target; give a concrete example using the "
+    "target's real range (for example: if it predicts 0.25, the real value is usually between 0.22 and 0.28); compare it "
+    "with the baseline MAE (always guessing the average) and say whether the model clearly adds value. "
+    "For classification, instead: **Accuracy = <x%> vs <baseline%> baseline** with the same kind of plain explanation.\n"
+    "**What drives it:** 2-3 bullets with the most important inputs and what they may mean physically for spacecraft fire safety.\n"
+    "**Limitations:** 2 bullets (sample size, data range, near-copies of the target, correlation is not causation).\n"
+    "**In short:** one closing sentence. Then **Next step:** one line. Do not overstate the results."
+)
+ML_PRED_EXPLAIN = (
+    "A user typed their own input values into a machine learning model that was trained on the fly with one NASA PSI "
+    "table, and got the prediction below. Explain it to a non-expert, with simple words and concrete numbers, using "
+    "exactly this Markdown structure:\n"
+    "**Prediction:** the predicted value or class. For a number, turn the typical error into a range "
+    "(predicted ± MAE → 'the real value would most likely be between A and B'), and compare with the typical case.\n"
+    "**How reliable:** one or two sentences using R² (share of variation explained, with the same Strong/Moderate/Weak/"
+    "Not predictive label) or accuracy vs baseline.\n"
+    "**What moved it:** bullets with the user's values that pushed the prediction up or down vs a typical case, and why "
+    "that may make physical sense for spacecraft fire safety.\n"
+    "**⚠️ Outside the data:** only if any value is outside the training range, say the prediction is an extrapolation.\n"
+    "**In short:** one closing sentence. Do not present it as a validated result."
 )
 TASKS = {
     "summary": "In 5 short bullets summarize the objective, fuels and conditions, key measurements and main findings.",
@@ -176,6 +209,18 @@ def merge_facets(a, b):
     return {"cats": cats, "o2": merge_span(a["o2"], b["o2"]), "p": merge_span(a["p"], b["p"])}
 
 
+def docx_text(data):
+    """Plain text of a .docx (Word) file using only the standard library."""
+    import html
+    import zipfile
+    with zipfile.ZipFile(io.BytesIO(data)) as z:
+        xml = z.read("word/document.xml").decode("utf-8", errors="replace")
+    xml = re.sub(r"<w:tab/>", "\t", xml)
+    xml = re.sub(r"<w:br[^>]*/>", "\n", xml)
+    paras = [html.unescape(re.sub(r"<[^>]+>", "", p)).strip() for p in xml.split("</w:p>")]
+    return "\n".join(p for p in paras if p)
+
+
 def load(path, rel, sig, data=None):
     parts = rel.split("/")
     kind = EXT[path.suffix.lower()]
@@ -194,7 +239,11 @@ def load(path, rel, sig, data=None):
             doc["preview"] = preview(df)
             doc["facets"] = facets_of(df)
         elif kind == "xlsx":
-            sheets = pd.read_excel(io.BytesIO(data) if data is not None else path, sheet_name=None, dtype=str)
+            try:
+                sheets = pd.read_excel(io.BytesIO(data) if data is not None else path, sheet_name=None, dtype=str,
+                                       engine="xlrd" if path.suffix.lower() == ".xls" else None)
+            except ImportError:
+                raise RuntimeError("Old Excel (.xls) files need the xlrd package: run  pip install xlrd , restart the server and load the PSI again")
             doc["sheets"] = [str(s) for s in sheets]
             for n, (name, df) in enumerate(sheets.items()):
                 doc["rows"] += len(df)
@@ -205,6 +254,12 @@ def load(path, rel, sig, data=None):
                     doc["preview"] = preview(df)
         elif kind == "image":
             pass
+        elif kind == "docx":
+            text = docx_text(data if data is not None else path.read_bytes())
+            doc["chunks"] = [(f"part {i // 3000 + 1}", text[i:i + 3000]) for i in range(0, len(text), 3000)]
+            doc["excerpt"] = text[:4000]
+            if not text.strip():
+                doc["error"] = "No readable text in this Word file"
         elif kind == "pdf":
             from pypdf import PdfReader
             reader = PdfReader(io.BytesIO(data) if data is not None else str(path))
@@ -363,14 +418,16 @@ def repo_summary():
     out = {}
     rf = repo_facets()
     for d in DOCS.values():
-        r = out.setdefault(d["repo"], {"name": d["repo"], "files": 0, "tables": 0, "pdfs": 0, "rows": 0, "desc": "", "facets": rf.get(d["repo"]), "remote": False})
+        r = out.setdefault(d["repo"], {"name": d["repo"], "files": 0, "tables": 0, "pdfs": 0, "rows": 0, "desc": "", "facets": rf.get(d["repo"]), "remote": False, "chars": 0})
         r["files"] += 1
+        r["chars"] += d.get("chars", 0)
         r["remote"] = r["remote"] or bool(d.get("remote"))
         r["tables"] += d["type"] in ("csv", "xlsx")
         r["pdfs"] += d["type"] == "pdf"
         r["rows"] += d["rows"]
         if d["name"].lower() in ("readme.md", "readme.txt") and d["chunks"]:
             body = re.sub(r"^\ufeff?---.*?---\s*", "", d["chunks"][0][1].replace("\r", ""), flags=re.S)
+            body = body.split("## Files not loaded from NASA")[0]
             r["desc"] = " ".join(body.split())[:240]
     return sorted(out.values(), key=lambda r: r["name"].lower())
 
@@ -620,27 +677,59 @@ def remote_load(n):
     try:
         psi, folder = f"PSI-{n}", remote_folder(n)
         info = psi_remote.psi_info(psi)
-        files = psi_remote.psi_files(psi)
-        if not info and not files:
+        files, left = psi_remote.psi_select(psi)
+        if not info and not files and not left:
             raise RuntimeError(f"{psi} was not found or has no public files")
         st["total"] = len(files)
+        st["left"] = left
+        st["bytes_total"] = sum(f.get("file_size") or 0 for f in files)
         new = {}
-        body = "\n\n".join(f"{k.title()}: {info[k]}" for k in ("title", "objective", "description") if info.get(k))
-        if body:
-            rid = f"{folder}/README.md"
-            new[rid] = load(Path(rid), rid, (0, len(body)), body[:6000].encode())
-            new[rid]["remote"] = {"psi": psi, "file": None}
-        for f in files:
-            rid = f"{folder}/{f['file_name']}"
+        slock = threading.Lock()
+
+        def fetch(f):
+            rid = f"{folder}/{psi_remote.display_name(f, psi)}"
+            if (DATA / rid).exists():
+                return rid, None
+            with slock:
+                st["current"].append(f["file_name"])
             try:
-                if not (DATA / rid).exists():
-                    data = psi_remote.psi_download(psi, f)
-                    sig = (int((f.get("date_modified") or {}).get("$date", 0)), len(data))
-                    new[rid] = load(Path(rid), rid, sig, data)
-                    new[rid]["remote"] = {"psi": psi, "file": f}
-            except Exception:
-                st["skipped"] += 1
-            st["done"] += 1
+                data = psi_remote.psi_download(psi, f)
+                sig = (psi_remote._date(f), len(data))
+                doc = load(Path(rid), rid, sig, data)
+                doc["remote"] = {"psi": psi, "file": f}
+                return rid, doc
+            finally:
+                with slock:
+                    st["current"].remove(f["file_name"])
+                    st["bytes_done"] += f.get("file_size") or 0
+
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            futures = {pool.submit(fetch, f): f for f in files}
+            for fut in as_completed(futures):
+                f = futures[fut]
+                try:
+                    rid, doc = fut.result()
+                    if doc:
+                        with LOCK:
+                            DOCS[rid] = doc
+                except Exception as e:
+                    with slock:
+                        st["skipped"] += 1
+                    left.append({"name": f["file_name"], "reason": "download failed (" + str(e)[:80] + ")"})
+                with slock:
+                    st["done"] += 1
+        body = "\n\n".join(f"{k.title()}: {info[k]}" for k in ("title", "objective", "description") if info.get(k))
+        if left:
+            groups = {}
+            for x in left:
+                groups.setdefault(x["reason"], []).append(x["name"])
+            body += "\n\n## Files not loaded from NASA\n" + "\n".join(
+                (f"- {r}: {ns[0]}" if len(ns) == 1 and re.fullmatch(r"\d+ files", ns[0]) else
+                 f"- {r} ({len(ns)}): " + ", ".join(ns[:8]) + (" …" if len(ns) > 8 else "")) for r, ns in groups.items())
+        if body.strip():
+            rid = f"{folder}/README.md"
+            new[rid] = load(Path(rid), rid, (0, len(body)), body[:8000].encode())
+            new[rid]["remote"] = {"psi": psi, "file": None}
         with LOCK:
             DOCS.update(new)
             save_index()
@@ -655,7 +744,8 @@ def remote_add():
     if not n:
         return jsonify(ok=False, error="Write a PSI number, for example 159"), 400
     if REMOTE.get(n, {}).get("state") != "loading":
-        REMOTE[n] = {"state": "loading", "done": 0, "total": 0, "skipped": 0, "error": ""}
+        REMOTE[n] = {"state": "loading", "done": 0, "total": 0, "skipped": 0, "error": "", "left": [],
+                     "bytes_done": 0, "bytes_total": 0, "current": []}
         threading.Thread(target=remote_load, args=(n,), daemon=True).start()
     return jsonify(ok=True, n=n, folder=remote_folder(n))
 
@@ -745,7 +835,8 @@ def table(d, sheet=None):
     if d["type"] == "csv":
         df = read_csv(path, src)
     else:
-        df = pd.read_excel(io.BytesIO(src) if src is not None else path, sheet_name=sheet if sheet in d["sheets"] else 0, dtype=str)
+        df = pd.read_excel(io.BytesIO(src) if src is not None else path, sheet_name=sheet if sheet in d["sheets"] else 0, dtype=str,
+                           engine="xlrd" if d["ext"] == "xls" else None)
     df = df.copy()
     df.columns = [str(c) for c in df.columns]
     if len(TABLES) >= 8:
@@ -798,6 +889,243 @@ def series():
         v = ys[m]
         stats.append({"group": name or "(empty)", "n": int(m.sum()), "min": float(v.min()), "max": float(v.max()), "mean": float(v.mean())})
     return jsonify(ok=True, series=out, stats=stats, skipped=int((~ok).sum()))
+
+
+ML_MAX_ROWS = 5000
+ML_STORE = {}
+
+
+def _ml_fit(kind, Xtr, ytr, ncls):
+    mu, sd = Xtr.mean(0), Xtr.std(0)
+    sd[sd == 0] = 1
+    Z = (Xtr - mu) / sd
+    if kind == "ridge":
+        Zb = np.hstack([Z, np.ones((len(Z), 1))])
+        Y = np.eye(ncls)[ytr] if ncls else ytr
+        reg = np.eye(Zb.shape[1])
+        reg[-1, -1] = 0
+        w = np.linalg.solve(Zb.T @ Zb + 1.0 * reg, Zb.T @ Y)
+        return {"kind": kind, "mu": mu, "sd": sd, "w": w, "ncls": ncls}
+    k = int(min(15, max(3, round(len(Z) ** 0.5 / 2))))
+    return {"kind": kind, "mu": mu, "sd": sd, "Z": Z, "y": ytr, "k": min(k, len(Z)), "ncls": ncls}
+
+
+def _ml_predict(m, X):
+    Z = (X - m["mu"]) / m["sd"]
+    if m["kind"] == "ridge":
+        out = np.hstack([Z, np.ones((len(Z), 1))]) @ m["w"]
+        return out.argmax(1) if m["ncls"] else out
+    preds = []
+    for i in range(0, len(Z), 500):
+        d = ((Z[i:i + 500, None, :] - m["Z"][None, :, :]) ** 2).sum(-1)
+        nn = np.argpartition(d, m["k"] - 1, axis=1)[:, :m["k"]]
+        ny = m["y"][nn]
+        if m["ncls"]:
+            preds.append(np.array([np.bincount(r, minlength=m["ncls"]).argmax() for r in ny]))
+        else:
+            preds.append(ny.mean(1))
+    return np.concatenate(preds)
+
+
+def _ml_scores(m, X):
+    Z = (X - m["mu"]) / m["sd"]
+    if m["kind"] == "ridge":
+        return np.hstack([Z, np.ones((len(Z), 1))]) @ m["w"]
+    d = ((Z[:, None, :] - m["Z"][None, :, :]) ** 2).sum(-1)
+    nn = np.argpartition(d, m["k"] - 1, axis=1)[:, :m["k"]]
+    return np.stack([np.bincount(r, minlength=m["ncls"]) for r in m["y"][nn]]) / m["k"]
+
+
+def _ml_score(ncls, y, p):
+    if ncls:
+        return float((y == p).mean())
+    ss = float(((y - y.mean()) ** 2).sum())
+    return 1 - float(((y - p) ** 2).sum()) / ss if ss else 0.0
+
+
+@app.post("/api/ml")
+def ml_train():
+    b = request.get_json(force=True)
+    d = DOCS.get(b.get("id", ""))
+    if not d or d["type"] not in ("csv", "xlsx"):
+        return jsonify(ok=False, error="Table not found"), 404
+    df = table(d, b.get("sheet") or None)
+    target = b.get("target", "")
+    if target not in df.columns:
+        return jsonify(ok=False, error="Choose a column to predict"), 400
+    t0 = time.time()
+    raw = df[target]
+    txt = raw.fillna("").astype(str).str.strip()
+    filled = txt != ""
+    ynum = pd.to_numeric(raw, errors="coerce")
+    if filled.sum() and ynum.notna().sum() >= 0.5 * filled.sum() and ynum.nunique() > 12:
+        task, keep, classes = "regression", ynum.notna(), []
+    else:
+        vc = txt[filled].value_counts()
+        vc = vc[vc >= 2]
+        if not 2 <= len(vc) <= 12:
+            return jsonify(ok=False, error=f"“{target}” can't be predicted: pick a numeric column, or one with 2 to 12 categories."), 400
+        task, classes = "classification", [str(c) for c in vc.index]
+        keep = txt.isin(classes)
+    data = df[keep]
+    if len(data) > ML_MAX_ROWS:
+        data = data.sample(ML_MAX_ROWS, random_state=42)
+    n = len(data)
+    if n < 20:
+        return jsonify(ok=False, error=f"Only {n} usable rows for “{target}”. The model needs at least 20."), 400
+    mats, groups, used, dropped, spec = [], [], [], [], []
+    for c in df.columns:
+        if c == target:
+            continue
+        s = data[c]
+        st = s.fillna("").astype(str).str.strip()
+        nf = int((st != "").sum())
+        if nf < 0.4 * n:
+            dropped.append(f"{c} (mostly empty)")
+            continue
+        num = pd.to_numeric(s, errors="coerce")
+        if num.notna().sum() >= 0.8 * nf:
+            if num.nunique() < 2:
+                dropped.append(f"{c} (constant)")
+                continue
+            mats.append(num.fillna(num.median()).to_numpy(float)[:, None])
+            spec.append({"name": c, "type": "number", "median": float(num.median()), "min": float(num.min()), "max": float(num.max())})
+        else:
+            nu = st.nunique()
+            if not 2 <= nu <= 12:
+                dropped.append(f"{c} ({'constant' if nu < 2 else 'text or ID'})")
+                continue
+            dm = pd.get_dummies(st)
+            mats.append(dm.to_numpy(float))
+            nz = st[st != ""]
+            spec.append({"name": c, "type": "choice", "options": [str(o) for o in dm.columns],
+                         "mode": str(nz.mode().iloc[0]) if len(nz) else str(dm.columns[0])})
+        start = sum(m.shape[1] for m in mats[:-1])
+        groups.append((c, start, start + mats[-1].shape[1]))
+        used.append(c)
+    if not mats:
+        return jsonify(ok=False, error="No usable input columns besides the one to predict."), 400
+    X = np.hstack(mats)
+    if task == "regression":
+        y = ynum[data.index].to_numpy(float)
+        ncls = 0
+    else:
+        lab = txt[data.index]
+        y = np.array([classes.index(v) for v in lab])
+        ncls = len(classes)
+    rng = np.random.default_rng(42)
+    folds = np.array_split(rng.permutation(n), 5)
+    names = {"ridge": "Linear (ridge)", "knn": "Nearest neighbours (k-NN)"}
+    res = {}
+    for kind in names:
+        oof = np.zeros(n) if not ncls else np.zeros(n, dtype=int)
+        imp = np.zeros(len(groups))
+        for te in folds:
+            tr = np.setdiff1d(np.arange(n), te)
+            m = _ml_fit(kind, X[tr], y[tr], ncls)
+            p = _ml_predict(m, X[te])
+            oof[te] = p
+            base = _ml_score(ncls, y[te], p)
+            for gi, (_, a, z) in enumerate(groups):
+                Xp = X[te].copy()
+                Xp[:, a:z] = Xp[rng.permutation(len(te))][:, a:z]
+                imp[gi] += base - _ml_score(ncls, y[te], _ml_predict(m, Xp))
+        res[kind] = (oof, imp / len(folds))
+    out_models = []
+    for kind, (oof, _) in res.items():
+        if ncls:
+            out_models.append({"key": kind, "name": names[kind], "accuracy": _ml_score(ncls, y, oof)})
+        else:
+            out_models.append({"key": kind, "name": names[kind], "r2": _ml_score(0, y, oof),
+                               "mae": float(np.abs(y - oof).mean()), "rmse": float(np.sqrt(((y - oof) ** 2).mean()))})
+    metric = "accuracy" if ncls else "r2"
+    best = max(out_models, key=lambda m: m[metric])
+    oof, imp = res[best["key"]]
+    imp = np.clip(imp, 0, None)
+    tot = imp.sum()
+    importance = sorted(({"feature": g[0], "share": float(v / tot) if tot else 0.0} for g, v in zip(groups, imp)), key=lambda r: -r["share"])[:12]
+    out = {"ok": True, "task": task, "target": target, "rows": n, "features": used, "dropped": dropped,
+           "models": out_models, "best": best, "importance": importance,
+           "trained_at": time.strftime("%H:%M:%S"), "seconds": round(time.time() - t0, 2),
+           "file": d["name"], "sheet": b.get("sheet") or "first"}
+    token = hashlib.md5(f"{time.time()}|{d['id']}|{target}".encode()).hexdigest()[:16]
+    if len(ML_STORE) >= 20:
+        ML_STORE.pop(next(iter(ML_STORE)))
+    ML_STORE[token] = {"model": _ml_fit(best["key"], X, y, ncls), "spec": spec, "groups": groups, "ncls": ncls,
+                       "classes": classes, "target": target, "task": task, "best": best, "file": d["name"]}
+    out["token"] = token
+    out["inputs"] = spec
+    if ncls:
+        maj = np.bincount(y, minlength=ncls)
+        out["baseline"] = float(maj.max() / n)
+        out["classes"] = classes
+        cm = np.zeros((ncls, ncls), dtype=int)
+        for a_, p_ in zip(y, oof):
+            cm[a_, p_] += 1
+        out["confusion"] = cm.tolist()
+    else:
+        out["baseline_mae"] = float(np.abs(y - y.mean()).mean())
+        out["target_range"] = [float(y.min()), float(y.max())]
+        out["target_mean"] = float(y.mean())
+        step = max(1, n // 1500)
+        out["points"] = [[float(a_), float(p_)] for a_, p_ in zip(y[::step], oof[::step])]
+    return jsonify(out)
+
+
+@app.post("/api/ml/predict")
+def ml_predict():
+    b = request.get_json(force=True)
+    st = ML_STORE.get(b.get("token", ""))
+    if not st:
+        return jsonify(ok=False, error="This model is no longer in memory (the server restarted). Press Train model again."), 410
+    vals = b.get("values") or {}
+    width = st["groups"][-1][2]
+    typical, x, outside, shown = np.zeros(width), np.zeros(width), [], []
+    for sp, (name, a, z) in zip(st["spec"], st["groups"]):
+        if sp["type"] == "number":
+            typical[a] = sp["median"]
+            raw = str(vals.get(name, "")).strip()
+            try:
+                v = float(raw) if raw else sp["median"]
+            except ValueError:
+                return jsonify(ok=False, error=f"“{name}” needs a number."), 400
+            if not np.isfinite(v):
+                return jsonify(ok=False, error=f"“{name}” needs a number."), 400
+            x[a] = v
+            if v < sp["min"] or v > sp["max"]:
+                outside.append({"feature": name, "value": v, "min": sp["min"], "max": sp["max"]})
+            shown.append((name, v, sp["median"]))
+        else:
+            opts = sp["options"]
+            typical[a + opts.index(sp["mode"])] = 1
+            v = str(vals.get(name, sp["mode"]))
+            if v not in opts:
+                v = sp["mode"]
+            x[a + opts.index(v)] = 1
+            shown.append((name, v, sp["mode"]))
+    m, ncls = st["model"], st["ncls"]
+    effects = []
+    if ncls:
+        sc = _ml_scores(m, x[None])[0]
+        k = int(sc.argmax())
+        sup = np.clip(sc, 0, None)
+        sup = sup / sup.sum() if sup.sum() > 0 else np.eye(ncls)[k]
+        order = np.argsort(-sup)[:3]
+        result = {"label": st["classes"][k], "support": [{"label": st["classes"][i], "share": float(sup[i])} for i in order]}
+        base = sc[k]
+    else:
+        base = float(_ml_predict(m, x[None])[0])
+        result = {"value": base, "typical_value": float(_ml_predict(m, typical[None])[0]), "typical_error": st["best"]["mae"]}
+    for (name, v, t), (_, a, z) in zip(shown, st["groups"]):
+        if v == t or (isinstance(v, float) and abs(v - t) <= 1e-4 * max(1.0, abs(t))):
+            continue
+        x2 = x.copy()
+        x2[a:z] = typical[a:z]
+        other = _ml_scores(m, x2[None])[0][k] if ncls else float(_ml_predict(m, x2[None])[0])
+        effects.append({"feature": name, "value": v, "typical": t, "effect": float(base - other)})
+    effects.sort(key=lambda e: -abs(e["effect"]))
+    return jsonify(ok=True, task=st["task"], target=st["target"], model=st["best"]["name"], result=result,
+                   effects=effects[:6], outside=outside, inputs={n: v for n, v, _ in shown})
 
 
 @app.post("/api/compare")
@@ -1023,6 +1351,14 @@ def ai():
                 "These are statistics and settings of a chart built from a NASA PSI table. In 5 short bullets "
                 "describe the trends or differences between groups and what they imply for spacecraft fire safety."
             )
+            key = None
+        elif task == "ml":
+            content = (b.get("payload") or "")[:AI_LIMIT]
+            instruction = ML_EXPLAIN
+            key = None
+        elif task == "mlpred":
+            content = (b.get("payload") or "")[:AI_LIMIT]
+            instruction = ML_PRED_EXPLAIN
             key = None
         elif task == "repo":
             docs = [d for d in DOCS.values() if d["repo"] == b.get("repo")]
