@@ -4,6 +4,7 @@ index_cache.pkl
 __pycache__/
 .DS_Store
 _backup_*/
-data/
 *.patch
 psi_debug_*
+data/*
+!data/NASA References/

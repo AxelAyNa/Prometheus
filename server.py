@@ -503,6 +503,11 @@ def logos():
     return jsonify(ok=True, logos=files[:2])
 
 
+@app.get("/favicon.ico")
+def favicon():
+    return send_from_directory(BASE / "logos", "prometheus-icon.png", mimetype="image/png")
+
+
 @app.get("/logos/<path:name>")
 def logo_file(name):
     return send_from_directory(BASE / "logos", name)
@@ -1174,6 +1179,158 @@ ENVS = {
     "mars": "a Mars surface base",
     "rover": "a pressurized rover",
 }
+HISTORY = {
+    "cases": [
+        {
+            "id": "apollo1", "year": "1967", "date": "January 27, 1967", "title": "Apollo 1 (AS-204)", "kind": "Fire",
+            "where": "Command Module, launch pad test",
+            "what": "During a preflight test on the pad, a fire broke out in the cabin while the crew was suited, the hatches "
+                    "were closed and the cabin was pressurized with 100% oxygen. The pure oxygen made the fire spread so fast "
+                    "that the crew could not escape. No single ignition source was proven, but there was evidence of electrical "
+                    "arcing in wiring near the environmental control system.",
+            "lesson": "Oxygen-rich atmospheres turn small ignitions into fast fires. NASA strictly limited combustible materials "
+                      "in the spacecraft, adopted fire-resistant suits and a hatch that opens in seconds.",
+            "topics": ["Oxygen-rich atmosphere", "Material flammability", "Electrical ignition", "Crew escape"],
+            "ask": "Which PSI investigations study how oxygen concentration and pressure change flame spread and material "
+                   "flammability, the risks behind the Apollo 1 fire? What do their results say for cabin atmospheres?",
+            "source": "https://sma.nasa.gov/sma-disciplines/accllp/apollo-1",
+            "docs": [{"label": "Senate report", "ref": "apollo1_senate"}],
+        },
+        {
+            "id": "mir", "year": "1997", "date": "February 24, 1997", "title": "Fire aboard space station Mir", "kind": "Fire",
+            "where": "Kvant-1 module, in orbit",
+            "what": "A solid-fuel oxygen generator canister ignited while a cosmonaut was activating it. The flame burned for "
+                    "several minutes, filled the station with dense smoke and blocked access to one Soyuz escape vehicle. The "
+                    "crew wore oxygen masks and used extinguishers until it went out; contamination of the canister (possibly "
+                    "latex glove material) was suspected.",
+            "lesson": "In orbit, smoke spreads through the whole station and escape routes can be cut off. The event shaped crew "
+                      "emergency training, procedures and the handling of oxygen generators later used on the ISS.",
+            "topics": ["Smoke and detection", "Suppression", "Oxygen generators", "Escape routes"],
+            "ask": "Which PSI investigations help with smoke detection, fire suppression and oxygen-generator fire risks in "
+                   "microgravity, like the 1997 Mir fire? What data could improve detectors or extinguishers?",
+            "source": "https://www.nasa.gov/history/25-years-ago-fire-aboard-space-station-mir/",
+            "docs": [],
+        },
+        {
+            "id": "apollo13", "year": "1970", "date": "April 1970", "title": "Apollo 13", "kind": "Related",
+            "note": "An explosion in an oxygen system, not a cabin fire",
+            "where": "Service Module oxygen tank, in flight",
+            "what": "On the third day of the mission, oxygen tank 2 exploded and cut power from the fuel cells; the crew used the "
+                    "Lunar Module as a lifeboat and returned safely. Heaters in the tank had overheated during a prelaunch test "
+                    "and damaged the Teflon insulation of its wiring.",
+            "lesson": "Oxygen systems and the insulation around them are fire and explosion hazards in their own right. NASA "
+                      "redesigned the oxygen storage, added a third tank and sheathed wiring in stainless steel.",
+            "topics": ["Oxygen systems", "Wire insulation", "Overheating"],
+            "ask": "Which PSI investigations study ignition and flammability of wire insulation or materials in oxygen-rich "
+                   "conditions, related to the Apollo 13 oxygen tank failure?",
+            "source": "https://sma.nasa.gov/sma-disciplines/accllp/apollo-13",
+            "docs": [{"label": "Review Board report", "ref": "apollo13_board"}, {"label": "Mission report", "ref": "apollo13_mission"}],
+        },
+    ],
+    "spinoffs": [
+        {"year": "1976", "title": "Lighter firefighter air tanks", "what": "A firefighter air pack about 13 pounds lighter, "
+         "with 30 minutes of air at twice the usual pressure, developed with NASA Johnson Space Center.",
+         "source": "https://spinoff.nasa.gov/node/9582"},
+        {"year": "1978", "title": "Early-warning fire detector", "what": "An air-sampling sensor that recognizes combustion "
+         "particles while ignoring harmless dust, warning before flames or smoke appear; it descends from a detector used "
+         "on the Space Shuttle orbiters.", "source": "https://spinoff.nasa.gov/node/9407"},
+        {"year": "1982", "title": "Better gear for firefighters", "what": "Project FIRES, with the U.S. Fire Administration, "
+         "used lightweight fire- and heat-resistant materials first developed for spacesuits and spacecraft thermal protection.",
+         "source": "https://spinoff.nasa.gov/node/9918"},
+    ],
+}
+
+
+def history_text():
+    out = [f"- {c['title']} ({c['date']}, {c['kind']}{': ' + c['note'] if c.get('note') else ''}): {c['what']} Lesson: {c['lesson']}"
+           for c in HISTORY["cases"]]
+    out += [f"- Spinoff {s['year']}, {s['title']}: {s['what']}" for s in HISTORY["spinoffs"]]
+    return "\n".join(out)
+
+
+HIST_CHAT_SYSTEM = (
+    "You are a historian of spaceflight fire safety inside a NASA fire safety dashboard. Answer ONLY about historical "
+    "fire and oxygen-related incidents in crewed spaceflight, the lessons NASA learned from them, and the related "
+    "spinoffs, using the case summaries and the excerpts of NASA reports given below. If the answer is not in them, "
+    "say so plainly and do not invent dates, numbers or names. Remember that Apollo 13 was an oxygen tank explosion, "
+    "not a cabin fire. When you use a report, mention its name in the sentence (no brackets or page codes). Write for "
+    "a non-expert, with short paragraphs or bullets and bold for key facts. Never use LaTeX. Answer in {lang}.\n\n"
+    "The user is currently reading: {current}\n\nCases and spinoffs:\n{history}"
+)
+
+
+@app.post("/api/history/chat")
+def history_chat():
+    import fetch_references as fr
+    b = request.get_json(force=True)
+    msgs = [m for m in (b.get("messages") or []) if m.get("role") in ("user", "assistant") and str(m.get("text") or "").strip()][-10:]
+    if not msgs or msgs[-1]["role"] != "user":
+        return jsonify(ok=False, error="Write a question first"), 400
+    lang = "Spanish" if b.get("lang") == "es" else "English"
+    current = str(b.get("current") or "nothing in particular")[:300]
+    focus = set(b.get("docs") or [])
+    question = str(msgs[-1]["text"])[:4000]
+    ts = [t for t in re.findall(r"[\w\-\.%]+", (question + " " + current).lower()) if len(t) > 2 and t not in STOP]
+    units = []
+    for r in fr.status():
+        d = DOCS.get(r["id"])
+        if not r["local"] or not d:
+            continue
+        for label, text, low in d["chunks"]:
+            if text.strip():
+                score = sum(low.count(t) for t in ts) + (25 if r["id"] in focus else 0)
+                units.append((score, d["name"], label, text.strip()))
+    units.sort(key=lambda u: -u[0])
+    picked, used = [], 0
+    for u in units:
+        if used + len(u[3]) > 60000:
+            continue
+        picked.append(u)
+        used += len(u[3])
+        if used > 55000:
+            break
+    excerpts = "\n\n".join(f"### {n} ({l})\n{t}" for _, n, l, t in picked) or "(no reports available)"
+    try:
+        from google.genai import types
+        system = HIST_CHAT_SYSTEM.format(lang=lang, current=current, history=history_text())
+        last = question + "\n\nExcerpts of NASA reports:\n" + excerpts
+        contents = [types.Content(role="user" if m["role"] == "user" else "model", parts=[types.Part(text=str(m["text"])[:4000])])
+                    for m in msgs[:-1]] + [types.Content(role="user", parts=[types.Part(text=last)])]
+        resp = call(lambda: get_client().models.generate_content(
+            model=MODEL, contents=contents, config=types.GenerateContentConfig(system_instruction=system)))
+        if not resp.text:
+            raise RuntimeError("Gemini returned an empty answer")
+        return jsonify(ok=True, text=resp.text, used=sorted({n for _, n, _, _ in picked}))
+    except Exception as e:
+        return jsonify(ok=False, error=str(e)), 500
+
+
+REF_META = {
+    "guide": {"year": "2015", "title": "Combustion Science: A Researcher's Guide",
+              "desc": "NASA's guide to combustion research on the ISS: why low gravity matters, past experiments, lessons and open questions.",
+              "related": "ISS research"},
+    "apollo1_senate": {"year": "1968", "title": "Apollo 204 Accident: Senate Report",
+                       "desc": "U.S. Senate report on the Apollo 1 cabin fire in a 100% oxygen atmosphere during a launch pad test.",
+                       "related": "Apollo 1"},
+    "apollo13_board": {"year": "1970", "title": "Report of the Apollo 13 Review Board",
+                       "desc": "Official investigation of the oxygen tank failure: cause, analysis, findings and recommendations.",
+                       "related": "Apollo 13"},
+    "apollo13_mission": {"year": "1970", "title": "Apollo 13 Mission Report",
+                         "desc": "NASA's technical report of the mission, the oxygen tank anomaly and how the crew returned.",
+                         "related": "Apollo 13"},
+}
+
+
+@app.get("/api/history")
+def history():
+    import fetch_references as fr
+    refs = [{**r, **REF_META.get(r["key"], {}), "pages": (DOCS.get(r["id"]) or {}).get("pages", 0)}
+            for r in fr.status() if r["local"]]
+    by = {r["key"]: r for r in refs}
+    cases = [{**c, "docs": [{**d, **by[d["ref"]]} for d in c["docs"] if d["ref"] in by]} for c in HISTORY["cases"]]
+    return jsonify(ok=True, cases=cases, spinoffs=HISTORY["spinoffs"], refs=refs, repo=fr.FOLDER)
+
+
 CHAT_SYSTEM = (
     "You are a fire safety research assistant inside a dashboard about NASA Physical Sciences Informatics (PSI) "
     "low-gravity combustion investigations. Help users (1) identify investigations relevant to crewed habitats: "
@@ -1185,6 +1342,8 @@ CHAT_SYSTEM = (
     "cannot find something, say so. Separate what comes from the list, from web sources and from your own inference. "
     "Fire safety of rockets and propellants is outside the scope of PSI data. Be concise and answer in {lang}.\n\n"
     "Investigations:\n{catalog}\n\nFiles loaded in the dashboard:\n{files}\n\n"
+    "Historical space fire incidents and spinoffs shown in the dashboard (use them to connect PSI research with real "
+    "events; Apollo 13 was an oxygen tank explosion, not a cabin fire):\n{history}\n\n"
     "Don't use markdown symbols or any kind of format, you can just use bold text."
 )
 
@@ -1192,7 +1351,7 @@ CHAT_SYSTEM = (
 def get_client():
     key = api_key()
     if not key:
-        raise RuntimeError("Add your Gemini API key in the sidebar (above Status & settings) to use the AI features.")
+        raise RuntimeError("Add your Gemini API key in the sidebar (above Status & settings) to use the Super Intelligence (SI) features.")
     if key not in CLIENTS:
         from google import genai
         if len(CLIENTS) > 50:
@@ -1316,7 +1475,7 @@ def chat():
             for m in msgs[:-1]
         ] + [types.Content(role="user", parts=[types.Part(text=last)])]
         files = "\n".join(sorted(f"{x['repo']}/{x['name']}" for x in DOCS.values())[:150])
-        system = CHAT_SYSTEM.format(lang=lang, catalog=catalog_text() or "(index.txt not loaded)", files=files or "(none)")
+        system = CHAT_SYSTEM.format(lang=lang, catalog=catalog_text() or "(index.txt not loaded)", files=files or "(none)", history=history_text())
         client = get_client()
         resp = None
         grounded = False
